@@ -24,7 +24,17 @@ export default function AuthScreen() {
         <div className="auth-header">
           <div className="mark" />
           <h2 className="neon-cyan">ARCADE VAULT</h2>
-          <div className="mono">ACCESO AL SISTEMA · v2.6</div>
+          <div
+            className="mono"
+            style={{
+              fontSize: 11,
+              color: "var(--ink-faint)",
+              letterSpacing: "0.16em",
+              marginTop: 6,
+            }}
+          >
+            ACCESO AL SISTEMA · v2.6
+          </div>
         </div>
         <div className="auth-tabs">
           <button
@@ -74,11 +84,20 @@ export default function AuthScreen() {
               placeholder="••••••••"
             />
           </div>
-          <button className="btn lg" type="submit">
+          <button
+            className="btn lg"
+            type="submit"
+            style={{ width: "100%", marginTop: 8 }}
+          >
             {tab === "in" ? "ENTRAR AL VAULT" : "CREAR Y JUGAR"}
           </button>
         </form>
-        <button type="button" className="btn ghost" onClick={guest}>
+        <button
+          type="button"
+          className="btn ghost"
+          style={{ width: "100%", marginTop: 10 }}
+          onClick={guest}
+        >
           JUGAR COMO INVITADO
         </button>
         <div className="auth-divider">O CONTINÚA CON</div>
@@ -90,7 +109,17 @@ export default function AuthScreen() {
             ▣ GITHUB
           </button>
         </div>
-        <div>AL ENTRAR ACEPTAS LOS TÉRMINOS DEL SALÓN ARCADE</div>
+        <div
+          style={{
+            marginTop: 18,
+            textAlign: "center",
+            fontSize: 11,
+            color: "var(--ink-faint)",
+            letterSpacing: "0.1em",
+          }}
+        >
+          AL ENTRAR ACEPTAS LOS TÉRMINOS DEL SALÓN ARCADE
+        </div>
       </div>
     </div>
   );
