@@ -12,7 +12,8 @@ export default function PlayerScreen({ game }: { game: Game }) {
   const level = Math.floor(score / 2500) + 1;
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
-  const [name, setName] = useState(user?.name ?? "INVITADO");
+  const [nameOverride, setNameOverride] = useState<string | null>(null);
+  const name = nameOverride ?? user?.name ?? "INVITADO";
   const [saved, setSaved] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const restartButtonRef = useRef<HTMLButtonElement>(null);
@@ -50,7 +51,9 @@ export default function PlayerScreen({ game }: { game: Game }) {
         <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
           <div className="hud-stat">
             <div className="l">Jugador</div>
-            <div className="v">{name}</div>
+            <div className="v" style={{ color: "var(--ink)" }}>
+              {name}
+            </div>
           </div>
           <div className="hud-stat">
             <div className="l">Puntuación</div>
@@ -100,7 +103,17 @@ export default function PlayerScreen({ game }: { game: Game }) {
                 <div className="pixel neon-yellow" style={{ fontSize: 22 }}>
                   EN PAUSA
                 </div>
-                <div className="mono">PULSA REANUDAR PARA CONTINUAR</div>
+                <div
+                  className="mono"
+                  style={{
+                    fontSize: 11,
+                    color: "var(--ink-dim)",
+                    marginTop: 10,
+                    letterSpacing: "0.16em",
+                  }}
+                >
+                  PULSA REANUDAR PARA CONTINUAR
+                </div>
               </div>
             </div>
           )}
@@ -128,7 +141,9 @@ export default function PlayerScreen({ game }: { game: Game }) {
                   ref={nameInputRef}
                   value={name}
                   onChange={(event) =>
-                    setName(event.target.value.toUpperCase().slice(0, 10))
+                    setNameOverride(
+                      event.target.value.toUpperCase().slice(0, 10),
+                    )
                   }
                   placeholder="TUS INICIALES"
                 />

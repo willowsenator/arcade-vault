@@ -1,9 +1,20 @@
 "use client";
 
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useSyncExternalStore,
+} from "react";
 
 export type User = { name: string };
-type AuthContextValue = { user: User | null; login: (user: User | null) => void; signOut: () => void };
+type AuthContextValue = {
+  user: User | null;
+  login: (user: User | null) => void;
+  signOut: () => void;
+};
 
 const USER_KEY = "av_user";
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -17,10 +28,13 @@ function readStoredUser(): User | null {
   try {
     const storedValue = localStorage.getItem(USER_KEY);
     if (storedValue === cachedStoredValue) return cachedStoredUser;
+    const parsedUser = JSON.parse(storedValue || "null") as User | null;
     cachedStoredValue = storedValue;
-    cachedStoredUser = JSON.parse(storedValue || "null");
+    cachedStoredUser = parsedUser;
     return cachedStoredUser;
   } catch {
+    cachedStoredValue = null;
+    cachedStoredUser = null;
     return null;
   }
 }
@@ -71,7 +85,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     notifyListeners();
   }, []);
 
-  const value = useMemo(() => ({ user, login, signOut }), [user, login, signOut]);
+  const value = useMemo(
+    () => ({ user, login, signOut }),
+    [user, login, signOut],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
