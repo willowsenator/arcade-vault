@@ -16,7 +16,8 @@ export function saveScore(entry: ScoreEntry): void {
 export function getSavedScores(): (ScoreEntry & { at: number })[] {
   if (typeof window === "undefined") return [];
   try {
-    return JSON.parse(localStorage.getItem(SCORES_KEY) || "[]");
+    const scores = JSON.parse(localStorage.getItem(SCORES_KEY) || "[]");
+    return Array.isArray(scores) ? scores : [];
   } catch {
     return [];
   }
