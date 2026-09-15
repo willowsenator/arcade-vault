@@ -13,6 +13,10 @@ describe("GameDetailScreen", () => {
       "href",
       `/games/${game.id}/play`,
     );
+    expect(screen.getByText("VOLVER AL VAULT")).toHaveAttribute(
+      "href",
+      "/biblioteca",
+    );
   });
   it("renders a leaderboard with 10 rows", () => {
     render(<GameDetailScreen game={GAMES[0]} />);

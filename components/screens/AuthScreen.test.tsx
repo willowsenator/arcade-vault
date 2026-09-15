@@ -22,7 +22,7 @@ describe("AuthScreen", () => {
     expect(localStorage.getItem("av_user")).toBe(
       JSON.stringify({ name: "PX_KAI" }),
     );
-    expect(push).toHaveBeenCalledWith("/");
+    expect(push).toHaveBeenCalledWith("/biblioteca");
   });
   it("plays as guest without setting a user", () => {
     render(
@@ -32,7 +32,7 @@ describe("AuthScreen", () => {
     );
     fireEvent.click(screen.getByText("JUGAR COMO INVITADO"));
     expect(localStorage.getItem("av_user")).toBe("null");
-    expect(push).toHaveBeenCalledWith("/");
+    expect(push).toHaveBeenCalledWith("/biblioteca");
   });
   it("shows the email field only on the sign-up tab", () => {
     render(
