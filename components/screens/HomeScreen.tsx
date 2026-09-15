@@ -14,6 +14,10 @@ function formatTotalPlays(total: number): string {
   return total >= 1000 ? `${(total / 1000).toFixed(1)}K+` : `${total}+`;
 }
 
+function rankClass(index: number): string {
+  return index === 0 ? " top1" : index === 1 ? " top2" : index === 2 ? " top3" : "";
+}
+
 const FEATURES = [
   {
     kind: "GAMEPAD",
@@ -358,7 +362,7 @@ export default function HomeScreen() {
               {topPlayers.map((row, index) => (
                 <div
                   key={row.name}
-                  className={`top-row${index === 0 ? " top1" : index === 1 ? " top2" : index === 2 ? " top3" : ""}`}
+                  className={`top-row${rankClass(index)}`}
                 >
                   <span className="tp-rk">#{String(row.rank).padStart(2, "0")}</span>
                   <span className="tp-p">{row.name}</span>
