@@ -12,11 +12,11 @@ export default function AuthScreen() {
   const submit = (event: FormEvent) => {
     event.preventDefault();
     login({ name: (user || "PLAYER1").toUpperCase().slice(0, 10) });
-    router.push("/");
+    router.push("/biblioteca");
   };
   const guest = () => {
     login(null);
-    router.push("/");
+    router.push("/biblioteca");
   };
   return (
     <div className="av-auth-wrap fade-in">

@@ -5,12 +5,14 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "./AuthProvider";
 
-type Section = "biblioteca" | "salon" | "auth";
+type Section = "inicio" | "biblioteca" | "salon" | "about" | "auth";
 
 export function isActive(pathname: string, section: Section): boolean {
+  if (section === "inicio") return pathname === "/";
   if (section === "biblioteca")
-    return pathname === "/" || pathname.startsWith("/games/");
+    return pathname === "/biblioteca" || pathname.startsWith("/games/");
   if (section === "salon") return pathname === "/leaderboard";
+  if (section === "about") return pathname === "/about";
   return pathname === "/auth";
 }
 
@@ -39,8 +41,11 @@ export default function Nav() {
           </div>
         </Link>
         <div className="links">
+          <Link href="/" className={isActive(pathname, "inicio") ? "active" : ""}>
+            Inicio
+          </Link>
           <Link
-            href="/"
+            href="/biblioteca"
             className={isActive(pathname, "biblioteca") ? "active" : ""}
           >
             Biblioteca
@@ -50,6 +55,9 @@ export default function Nav() {
             className={isActive(pathname, "salon") ? "active" : ""}
           >
             Salón de la Fama
+          </Link>
+          <Link href="/about" className={isActive(pathname, "about") ? "active" : ""}>
+            Acerca de
           </Link>
         </div>
         <div className="spacer" />
@@ -85,8 +93,11 @@ export default function Nav() {
         >
           MENÚ
         </div>
+        <Link href="/" onClick={close} className={isActive(pathname, "inicio") ? "active" : ""}>
+          Inicio
+        </Link>
         <Link
-          href="/"
+          href="/biblioteca"
           onClick={close}
           className={isActive(pathname, "biblioteca") ? "active" : ""}
         >
@@ -98,6 +109,13 @@ export default function Nav() {
           className={isActive(pathname, "salon") ? "active" : ""}
         >
           Salón de la Fama
+        </Link>
+        <Link
+          href="/about"
+          onClick={close}
+          className={isActive(pathname, "about") ? "active" : ""}
+        >
+          Acerca de
         </Link>
         <Link
           href="/auth"

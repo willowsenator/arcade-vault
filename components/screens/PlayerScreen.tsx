@@ -164,7 +164,7 @@ export default function PlayerScreen({ game }: { game: Game }) {
               <button ref={restartButtonRef} className="btn" onClick={restart}>
                 JUGAR DE NUEVO
               </button>
-              <Link href="/" className="btn magenta">
+              <Link href="/biblioteca" className="btn magenta">
                 VOLVER AL VAULT
               </Link>
             </div>

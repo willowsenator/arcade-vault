@@ -52,7 +52,7 @@ export default function GameDetailScreen({ game }: { game: Game }) {
             <Link href={`/games/${game.id}/play`} className="btn xl pulse">
               ▶ JUGAR AHORA
             </Link>
-            <Link href="/" className="btn ghost lg">
+            <Link href="/biblioteca" className="btn ghost lg">
               VOLVER AL VAULT
             </Link>
           </div>
