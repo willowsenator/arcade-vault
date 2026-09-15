@@ -1,26 +1,7 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
-
-function useReveal() {
-  useEffect(() => {
-    if (typeof IntersectionObserver === "undefined") return;
-    const els = document.querySelectorAll(".reveal");
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("in");
-            io.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.12 },
-    );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, []);
-}
+import { useState, type FormEvent } from "react";
+import { useReveal } from "@/lib/useReveal";
 
 function HighlightIcon({ kind }: { kind: "HEART" | "BROWSER" | "PLANT" }) {
   const c = "currentColor";
@@ -91,12 +72,17 @@ export default function AboutScreen() {
   const [form, setForm] = useState<ContactForm>(EMPTY_FORM);
   const [sent, setSent] = useState<string | null>(null);
   const [shake, setShake] = useState(false);
+  const [showError, setShowError] = useState(false);
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (!form.name.trim() || !form.email.trim() || !form.msg.trim()) {
       setShake(true);
-      setTimeout(() => setShake(false), 400);
+      setShowError(true);
+      setTimeout(() => {
+        setShake(false);
+        setShowError(false);
+      }, 400);
       return;
     }
     setSent(form.name.trim());
@@ -178,6 +164,7 @@ export default function AboutScreen() {
                       setForm({ ...form, name: event.target.value })
                     }
                     placeholder="px_kai"
+                    aria-invalid={showError && !form.name.trim()}
                   />
                 </div>
                 <div className="field">
@@ -190,6 +177,7 @@ export default function AboutScreen() {
                       setForm({ ...form, email: event.target.value })
                     }
                     placeholder="jugador@vault.gg"
+                    aria-invalid={showError && !form.email.trim()}
                   />
                 </div>
                 <div className="field">
@@ -202,8 +190,14 @@ export default function AboutScreen() {
                       setForm({ ...form, msg: event.target.value })
                     }
                     placeholder="Cuéntanos qué tienes en mente…"
+                    aria-invalid={showError && !form.msg.trim()}
                   />
                 </div>
+                {showError && (
+                  <div role="alert" className="contact-error mono">
+                    Completa todos los campos antes de enviar.
+                  </div>
+                )}
                 <button
                   className="btn xl press"
                   type="submit"
@@ -213,7 +207,7 @@ export default function AboutScreen() {
                 </button>
               </>
             ) : (
-              <div className="terminal-success">
+              <div className="terminal-success" role="status">
                 <div className="term-bar">
                   <span className="dot r" />
                   <span className="dot y" />
