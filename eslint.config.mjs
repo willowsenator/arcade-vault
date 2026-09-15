@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Reference-only design snippets, not part of the app build.
     "references/templates/**",
+    "references/home-about/**",
   ]),
 ]);
 
