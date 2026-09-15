@@ -38,6 +38,10 @@ describe("PlayerScreen", () => {
     );
     fireEvent.click(screen.getByText("FIN"));
     expect(screen.getByText("FIN DEL JUEGO")).toBeInTheDocument();
+    expect(screen.getByText("VOLVER AL VAULT")).toHaveAttribute(
+      "href",
+      "/biblioteca",
+    );
     fireEvent.click(screen.getByText("GUARDAR PUNTUACIÓN"));
     expect(screen.getByText("▸ PUNTUACIÓN GUARDADA_")).toBeInTheDocument();
     expect(localStorage.getItem("av_scores")).not.toBeNull();

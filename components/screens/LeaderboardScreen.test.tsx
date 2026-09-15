@@ -19,6 +19,14 @@ describe("LeaderboardScreen", () => {
     expect(screen.queryByText(/TU MEJOR MARCA/)).not.toBeInTheDocument();
   });
 
+  it("links back to the library", () => {
+    render(<AuthProvider><LeaderboardScreen /></AuthProvider>);
+    expect(screen.getByText("VOLVER A LA BIBLIOTECA")).toHaveAttribute(
+      "href",
+      "/biblioteca",
+    );
+  });
+
   it("highlights the signed-in user's own row", () => {
     localStorage.setItem("av_user", JSON.stringify({ name: "PX_KAI" }));
     const { container } = render(<AuthProvider><LeaderboardScreen /></AuthProvider>);
