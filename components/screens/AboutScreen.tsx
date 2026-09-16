@@ -73,19 +73,38 @@ export default function AboutScreen() {
   const [sent, setSent] = useState<string | null>(null);
   const [shake, setShake] = useState(false);
   const [showError, setShowError] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
-  const onSubmit = (event: FormEvent) => {
+  const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (!form.name.trim() || !form.email.trim() || !form.msg.trim()) {
       setShake(true);
       setShowError(true);
+      setSendError(null);
       setTimeout(() => {
         setShake(false);
         setShowError(false);
       }, 400);
       return;
     }
-    setSent(form.name.trim());
+    setSending(true);
+    setSendError(null);
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!response.ok) {
+        throw new Error("send failed");
+      }
+      setSent(form.name.trim());
+    } catch {
+      setSendError("No se pudo enviar el mensaje. Intenta de nuevo.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -193,17 +212,20 @@ export default function AboutScreen() {
                     aria-invalid={showError && !form.msg.trim()}
                   />
                 </div>
-                {showError && (
+                {(showError || sendError) && (
                   <div role="alert" className="contact-error mono">
-                    Completa todos los campos antes de enviar.
+                    {showError
+                      ? "Completa todos los campos antes de enviar."
+                      : sendError}
                   </div>
                 )}
                 <button
                   className="btn xl press"
                   type="submit"
                   style={{ width: "100%" }}
+                  disabled={sending}
                 >
-                  ▶ ENVIAR MENSAJE
+                  {sending ? "ENVIANDO…" : "▶ ENVIAR MENSAJE"}
                 </button>
               </>
             ) : (
