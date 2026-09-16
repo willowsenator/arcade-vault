@@ -20,9 +20,27 @@ describe("POST /api/contact", () => {
     sendContactEmailMock.mockReset();
   });
 
-  it("returns 400 and does not call sendContactEmail when a required field is missing", async () => {
+  it("returns 400 and does not call sendContactEmail when email is missing", async () => {
     const response = await POST(
       makeRequest({ name: "Kai", email: "", msg: "Hola" }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(sendContactEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when name is missing", async () => {
+    const response = await POST(
+      makeRequest({ name: "", email: "kai@vault.gg", msg: "Hola" }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(sendContactEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when msg is missing", async () => {
+    const response = await POST(
+      makeRequest({ name: "Kai", email: "kai@vault.gg", msg: "" }),
     );
 
     expect(response.status).toBe(400);
@@ -56,7 +74,7 @@ describe("POST /api/contact", () => {
     });
   });
 
-  it("returns 502 with the error message when sending fails", async () => {
+  it("returns 502 with generic error message when sending fails", async () => {
     sendContactEmailMock.mockResolvedValue({ ok: false, error: "boom" });
 
     const response = await POST(
@@ -66,7 +84,7 @@ describe("POST /api/contact", () => {
     expect(response.status).toBe(502);
     await expect(response.json()).resolves.toEqual({
       ok: false,
-      error: "boom",
+      error: "Failed to send message",
     });
   });
 });

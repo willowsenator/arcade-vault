@@ -34,8 +34,9 @@ export async function POST(request: Request) {
   });
 
   if (!result.ok) {
+    console.error("Contact form email send failed:", result.error);
     return NextResponse.json(
-      { ok: false, error: result.error },
+      { ok: false, error: "Failed to send message" },
       { status: 502 },
     );
   }
