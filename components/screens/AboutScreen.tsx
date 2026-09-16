@@ -81,6 +81,7 @@ export default function AboutScreen() {
     if (!form.name.trim() || !form.email.trim() || !form.msg.trim()) {
       setShake(true);
       setShowError(true);
+      setSendError(null);
       setTimeout(() => {
         setShake(false);
         setShowError(false);

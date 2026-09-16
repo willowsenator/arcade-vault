@@ -47,6 +47,43 @@ describe("POST /api/contact", () => {
     expect(sendContactEmailMock).not.toHaveBeenCalled();
   });
 
+  it("returns 400 when name exceeds 100 characters", async () => {
+    const response = await POST(
+      makeRequest({ name: "a".repeat(101), email: "kai@vault.gg", msg: "Hola" }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(sendContactEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when email exceeds 200 characters", async () => {
+    const longEmail = `${"a".repeat(195)}@vault.gg`; // > 200 chars
+    const response = await POST(
+      makeRequest({ name: "Kai", email: longEmail, msg: "Hola" }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(sendContactEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when msg exceeds 5000 characters", async () => {
+    const response = await POST(
+      makeRequest({ name: "Kai", email: "kai@vault.gg", msg: "a".repeat(5001) }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(sendContactEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 when email is not a valid email format", async () => {
+    const response = await POST(
+      makeRequest({ name: "Kai", email: "not-an-email", msg: "Hola" }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(sendContactEmailMock).not.toHaveBeenCalled();
+  });
+
   it("returns 400 when the request body is not valid JSON", async () => {
     const request = new Request("http://localhost/api/contact", {
       method: "POST",

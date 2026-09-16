@@ -127,6 +127,41 @@ describe("AboutScreen", () => {
     expect(screen.queryByText("VAULT-OS // TERMINAL")).not.toBeInTheDocument();
   });
 
+  it("clears a stale send-failure message when a subsequent submit fails validation", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false } as Response),
+    );
+    render(<AboutScreen />);
+    fillValidForm();
+    fireEvent.click(screen.getByText("▶ ENVIAR MENSAJE"));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "No se pudo enviar el mensaje. Intenta de nuevo.",
+      );
+    });
+
+    // blank a required field, then resubmit — no send is attempted this time
+    vi.useFakeTimers();
+    fireEvent.change(
+      screen.getByPlaceholderText("Cuéntanos qué tienes en mente…"),
+      { target: { value: "" } },
+    );
+    fireEvent.click(screen.getByText("▶ ENVIAR MENSAJE"));
+
+    // let the 400ms validation-error window elapse — the stale send-failure
+    // message must not reappear afterward
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    vi.useRealTimers();
+
+    expect(
+      screen.queryByText("No se pudo enviar el mensaje. Intenta de nuevo."),
+    ).not.toBeInTheDocument();
+  });
+
   it("resets to a blank form after choosing to send another message", async () => {
     render(<AboutScreen />);
     fillValidForm();
