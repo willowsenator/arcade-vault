@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { config } from "./middleware";
+import { config } from "./proxy";
 
-describe("middleware config.matcher", () => {
+describe("proxy config.matcher", () => {
   // Next.js anchors matcher patterns to the full path internally; anchor
   // here too, or an unanchored RegExp.test() can restart matching at a
   // later "/" in the path and silently bypass the exclusion.
