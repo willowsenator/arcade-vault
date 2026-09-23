@@ -17,10 +17,14 @@ const getUserMock = vi.fn(async () => {
   return { data: { user: null }, error: null };
 });
 
+let capturedGlobal: { fetch?: typeof fetch } | undefined;
+
 const createServerClientMock = vi.fn((_url: string, _key: string, options: {
   cookies: typeof capturedCookies;
+  global?: { fetch?: typeof fetch };
 }) => {
   capturedCookies = options.cookies;
+  capturedGlobal = options.global;
   return {
     auth: {
       getUser: getUserMock,
@@ -77,5 +81,23 @@ describe("updateSession", () => {
     await expect(updateSession(request)).rejects.toThrow(
       "NEXT_PUBLIC_SUPABASE_URL is not configured",
     );
+  });
+
+  it("gives the Supabase client a fetch that aborts a hung request instead of waiting forever", async () => {
+    const request = new NextRequest("http://localhost/biblioteca");
+    await updateSession(request);
+
+    expect(capturedGlobal?.fetch).toBeTypeOf("function");
+
+    const underlyingFetch = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation(() => new Promise(() => {}));
+
+    capturedGlobal!.fetch!("https://example.supabase.co/auth/v1/user");
+
+    const [, init] = underlyingFetch.mock.calls[0] as [unknown, RequestInit];
+    expect(init.signal).toBeInstanceOf(AbortSignal);
+
+    underlyingFetch.mockRestore();
   });
 });

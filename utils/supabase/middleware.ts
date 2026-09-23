@@ -1,6 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+// The proxy runs on nearly every route (see proxy.ts's matcher), so a
+// hung Supabase Auth endpoint would otherwise hang every page request
+// indefinitely instead of failing fast.
+const AUTH_REQUEST_TIMEOUT_MS = 5000;
+
+function fetchWithTimeout(timeoutMs: number): typeof fetch {
+  return (input, init) =>
+    fetch(input, { ...init, signal: AbortSignal.timeout(timeoutMs) });
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
@@ -32,6 +42,9 @@ export async function updateSession(request: NextRequest) {
           supabaseResponse.headers.set(key, value),
         );
       },
+    },
+    global: {
+      fetch: fetchWithTimeout(AUTH_REQUEST_TIMEOUT_MS),
     },
   });
 

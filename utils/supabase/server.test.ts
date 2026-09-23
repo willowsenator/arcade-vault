@@ -36,12 +36,13 @@ describe("createClient (server)", () => {
   });
 
   it("creates a server client with the configured URL and key", () => {
-    createClient(makeCookieStore() as never);
+    const client = createClient(makeCookieStore() as never);
     expect(createServerClientMock).toHaveBeenCalledWith(
       "https://example.supabase.co",
       "test-publishable-key",
       expect.any(Object),
     );
+    expect(client).toBe(createServerClientMock.mock.results[0].value);
   });
 
   it("delegates cookies.getAll() to the cookie store", () => {

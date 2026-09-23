@@ -20,11 +20,12 @@ describe("createClient (browser)", () => {
   });
 
   it("creates a browser client with the configured URL and key", () => {
-    createClient();
+    const client = createClient();
     expect(createBrowserClientMock).toHaveBeenCalledWith(
       "https://example.supabase.co",
       "test-publishable-key",
     );
+    expect(client).toBe(createBrowserClientMock.mock.results[0].value);
   });
 
   it("throws when NEXT_PUBLIC_SUPABASE_URL is unset", () => {
