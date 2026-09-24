@@ -3,9 +3,14 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import PlayerScreen from "./PlayerScreen";
 import { AuthProvider } from "@/components/AuthProvider";
 import { GAMES } from "@/lib/data";
-import { getSavedScores } from "@/lib/scores";
 
 const mounts = vi.hoisted(() => ({ count: 0 }));
+const supabase = vi.hoisted(() => ({
+  insertScore: vi.fn(),
+  createClient: vi.fn(() => ({ __browser: true })),
+}));
+vi.mock("@/lib/score-queries", () => ({ insertScore: supabase.insertScore }));
+vi.mock("@/utils/supabase/client", () => ({ createClient: supabase.createClient }));
 
 vi.mock("@/components/games/AsteroidsCanvas", async () => {
   const { useEffect } = await import("react");
@@ -47,6 +52,8 @@ describe("PlayerScreen with the asteroids engine", () => {
     vi.useFakeTimers();
     localStorage.clear();
     mounts.count = 0;
+    supabase.insertScore.mockReset().mockResolvedValue(undefined);
+    supabase.createClient.mockReset().mockReturnValue({ __browser: true });
   });
   afterEach(() => vi.useRealTimers());
 
@@ -82,15 +89,21 @@ describe("PlayerScreen with the asteroids engine", () => {
     expect(canvas).toHaveAttribute("data-running", "true");
   });
 
-  it("opens the final dialog with the real score and saves it under rocas", () => {
+  it("opens the final dialog with the real score and saves it under rocas", async () => {
     renderPlayer();
     fireEvent.click(screen.getByText("emit-stats"));
     fireEvent.click(screen.getByText("emit-over"));
     expect(screen.getByText("FIN DEL JUEGO")).toBeInTheDocument();
     expect(screen.getByTestId("asteroids-canvas")).toHaveAttribute("data-running", "false");
 
-    fireEvent.click(screen.getByText("GUARDAR PUNTUACIÓN"));
-    expect(getSavedScores()).toMatchObject([{ game: "rocas", score: 340 }]);
+    await act(async () => {
+      fireEvent.click(screen.getByText("GUARDAR PUNTUACIÓN"));
+    });
+    expect(supabase.insertScore).toHaveBeenCalledWith(
+      { __browser: true },
+      { game: "rocas", name: "INVITADO", score: 340 },
+    );
+    expect(screen.getByText("▸ PUNTUACIÓN GUARDADA_")).toBeInTheDocument();
   });
 
   it("opens the dialog when FIN is pressed mid-game", () => {

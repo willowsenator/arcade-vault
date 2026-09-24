@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Game } from "@/lib/data";
 import { useAuth } from "@/components/AuthProvider";
-import { saveScore } from "@/lib/scores";
+import { insertScore } from "@/lib/score-queries";
+import { createClient } from "@/utils/supabase/client";
 import AsteroidsCanvas from "@/components/games/AsteroidsCanvas";
 import { START_LIVES, type Stats } from "@/lib/asteroids/game";
 
@@ -21,6 +22,9 @@ export default function PlayerScreen({ game }: { game: Game }) {
   const [nameOverride, setNameOverride] = useState<string | null>(null);
   const name = nameOverride ?? user?.name ?? "INVITADO";
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const saveRunRef = useRef(0);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const restartButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -47,6 +51,33 @@ export default function PlayerScreen({ game }: { game: Game }) {
     setPaused(false);
     setOver(false);
     setSaved(false);
+    setSaveError(null);
+    setSaving(false);
+    saveRunRef.current += 1;
+  };
+
+  const save = async () => {
+    if (saving) return;
+    const playerName = name.trim();
+    if (!playerName) {
+      setSaveError("ESCRIBE UN NOMBRE PARA GUARDAR");
+      return;
+    }
+    const run = saveRunRef.current;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await insertScore(createClient(), { game: game.id, name: playerName, score });
+      if (saveRunRef.current === run) setSaved(true);
+    } catch (error) {
+      console.error("PlayerScreen: saving the score failed", { game: game.id }, error);
+      if (saveRunRef.current === run) {
+        setSaveError("NO SE PUDO GUARDAR LA PUNTUACIÓN. INTÉNTALO DE NUEVO");
+        nameInputRef.current?.focus();
+      }
+    } finally {
+      if (saveRunRef.current === run) setSaving(false);
+    }
   };
 
   useEffect(() => {
@@ -171,27 +202,33 @@ export default function PlayerScreen({ game }: { game: Game }) {
             <div className="final-label">PUNTUACIÓN FINAL</div>
             <div className="final">{score.toLocaleString("es-ES")}</div>
             {!saved ? (
-              <div className="input-row">
-                <input
-                  ref={nameInputRef}
-                  value={name}
-                  onChange={(event) =>
-                    setNameOverride(
-                      event.target.value.toUpperCase().slice(0, 10),
-                    )
-                  }
-                  placeholder="TUS INICIALES"
-                />
-                <button
-                  className="btn yellow"
-                  onClick={() => {
-                    saveScore({ game: game.id, score, name });
-                    setSaved(true);
-                  }}
-                >
-                  GUARDAR PUNTUACIÓN
-                </button>
-              </div>
+              <>
+                <div className="input-row">
+                  <input
+                    ref={nameInputRef}
+                    value={name}
+                    onChange={(event) =>
+                      setNameOverride(
+                        event.target.value.toUpperCase().slice(0, 10),
+                      )
+                    }
+                    placeholder="TUS INICIALES"
+                    readOnly={saving}
+                  />
+                  <button
+                    className="btn yellow"
+                    onClick={save}
+                    aria-disabled={saving}
+                  >
+                    GUARDAR PUNTUACIÓN
+                  </button>
+                </div>
+                {saveError && (
+                  <div role="alert" style={{ color: "var(--magenta)" }}>
+                    {saveError}
+                  </div>
+                )}
+              </>
             ) : (
               <div className="toast-saved">▸ PUNTUACIÓN GUARDADA_</div>
             )}
