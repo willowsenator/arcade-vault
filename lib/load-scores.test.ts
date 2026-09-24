@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const createClientMock = vi.fn();
-vi.mock("next/headers", () => ({ cookies: vi.fn(async () => ({ __cookies: true })) }));
+const createClientMock = vi.hoisted(() => vi.fn());
+const cookiesMock = vi.hoisted(() => vi.fn());
+vi.mock("next/headers", () => ({ cookies: cookiesMock }));
 vi.mock("@/utils/supabase/server", () => ({ createClient: createClientMock }));
 
 const { withScores } = await import("./load-scores");
@@ -11,6 +12,7 @@ describe("withScores", () => {
 
   beforeEach(() => {
     createClientMock.mockReset();
+    cookiesMock.mockReset().mockResolvedValue({ __cookies: true });
     errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
@@ -36,6 +38,16 @@ describe("withScores", () => {
     expect(await withScores(load)).toBeNull();
     expect(load).not.toHaveBeenCalled();
     expect(errorSpy).toHaveBeenCalledWith("Scores unavailable:", failure);
+  });
+
+  it("propagates a rejection from cookies() instead of reporting a scores failure", async () => {
+    const signal = Object.assign(new Error("Dynamic server usage"), { digest: "DYNAMIC_SERVER_USAGE" });
+    cookiesMock.mockRejectedValue(signal);
+    const load = vi.fn(async () => "rows");
+    await expect(withScores(load)).rejects.toBe(signal);
+    expect(load).not.toHaveBeenCalled();
+    expect(createClientMock).not.toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
   });
 
   it("returns null and logs when the loader rejects", async () => {
