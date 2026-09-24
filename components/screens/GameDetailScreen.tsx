@@ -1,8 +1,17 @@
 import Link from "next/link";
-import { seededScores, type Game } from "@/lib/data";
+import type { Game, ScoreRow } from "@/lib/data";
+import { SCORES_LOAD_ERROR } from "@/lib/messages";
+import type { GameStats } from "@/lib/score-queries";
 
-export default function GameDetailScreen({ game }: { game: Game }) {
-  const scores = seededScores(game.id.length * 17 + 3, 10);
+export default function GameDetailScreen({
+  game,
+  stats,
+  topScores,
+}: {
+  game: Game;
+  stats: GameStats | null;
+  topScores: ScoreRow[] | null;
+}) {
   return (
     <div className="av-detail fade-in">
       <div>
@@ -21,7 +30,7 @@ export default function GameDetailScreen({ game }: { game: Game }) {
           <div className="stat-strip">
             <div>
               <div className="l">Partidas</div>
-              <div className="v">{game.plays}</div>
+              <div className="v">{stats ? stats.plays.toLocaleString("es-ES") : "—"}</div>
             </div>
             <div>
               <div className="l">Mejor global</div>
@@ -32,7 +41,7 @@ export default function GameDetailScreen({ game }: { game: Game }) {
                   textShadow: "0 0 6px rgba(255,0,110,0.5)",
                 }}
               >
-                {game.best.toLocaleString("es-ES")}
+                {stats?.best ? stats.best.toLocaleString("es-ES") : "—"}
               </div>
             </div>
             <div>
@@ -61,27 +70,35 @@ export default function GameDetailScreen({ game }: { game: Game }) {
       <aside>
         <div className="leaderboard">
           <h3>MEJORES PUNTUACIONES</h3>
-          {scores.map((row, index) => (
-            <div
-              key={row.name}
-              className={`lb-row${index === 0 ? " top1" : index === 1 ? " top2" : index === 2 ? " top3" : ""}`}
-            >
-              <div className="rk">#{String(row.rank).padStart(2, "0")}</div>
-              <div className="pl">
-                {row.name}
-                <div
-                  style={{
-                    fontSize: 10,
-                    color: "var(--ink-faint)",
-                    letterSpacing: "0.1em",
-                  }}
-                >
-                  {row.date}
-                </div>
-              </div>
-              <div className="sc">{row.score.toLocaleString("es-ES")}</div>
+          {topScores === null ? (
+            <div role="alert" style={{ color: "var(--magenta)" }}>
+              {SCORES_LOAD_ERROR}
             </div>
-          ))}
+          ) : topScores.length === 0 ? (
+            <div style={{ color: "var(--ink-faint)" }}>AÚN NO HAY PUNTUACIONES</div>
+          ) : (
+            topScores.map((row, index) => (
+              <div
+                key={`${row.rank}-${row.name}`}
+                className={`lb-row${index === 0 ? " top1" : index === 1 ? " top2" : index === 2 ? " top3" : ""}`}
+              >
+                <div className="rk">#{String(row.rank).padStart(2, "0")}</div>
+                <div className="pl">
+                  {row.name}
+                  <div
+                    style={{
+                      fontSize: 10,
+                      color: "var(--ink-faint)",
+                      letterSpacing: "0.1em",
+                    }}
+                  >
+                    {row.date}
+                  </div>
+                </div>
+                <div className="sc">{row.score.toLocaleString("es-ES")}</div>
+              </div>
+            ))
+          )}
         </div>
       </aside>
     </div>
