@@ -1,15 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Game } from "@/lib/data";
 import { useAuth } from "@/components/AuthProvider";
 import { saveScore } from "@/lib/scores";
+import AsteroidsCanvas from "@/components/games/AsteroidsCanvas";
+import { START_LIVES, type Stats } from "@/lib/asteroids/game";
 
 export default function PlayerScreen({ game }: { game: Game }) {
   const { user } = useAuth();
+  const playable = game.engine === "asteroids";
   const [score, setScore] = useState(0);
-  const level = Math.floor(score / 2500) + 1;
+  const [lives, setLives] = useState(START_LIVES);
+  const [gameLevel, setGameLevel] = useState(1);
+  const [runId, setRunId] = useState(0);
+  const level = playable ? gameLevel : Math.floor(score / 2500) + 1;
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
   const [nameOverride, setNameOverride] = useState<string | null>(null);
@@ -18,17 +24,26 @@ export default function PlayerScreen({ game }: { game: Game }) {
   const nameInputRef = useRef<HTMLInputElement>(null);
   const restartButtonRef = useRef<HTMLButtonElement>(null);
 
+  const handleStats = useCallback((stats: Stats) => {
+    setScore(stats.score);
+    setLives(stats.lives);
+    setGameLevel(stats.level);
+  }, []);
+
   useEffect(() => {
-    if (over || paused) return;
+    if (playable || over || paused) return;
     const timer = setInterval(
       () => setScore((value) => value + Math.floor(10 + Math.random() * 90)),
       220,
     );
     return () => clearInterval(timer);
-  }, [over, paused]);
+  }, [playable, over, paused]);
 
   const restart = () => {
     setScore(0);
+    setLives(START_LIVES);
+    setGameLevel(1);
+    setRunId((id) => id + 1);
     setPaused(false);
     setOver(false);
     setSaved(false);
@@ -63,11 +78,19 @@ export default function PlayerScreen({ game }: { game: Game }) {
           </div>
           <div className="hud-stat lives">
             <div className="l">Vidas</div>
-            <div className="v">♥ ♥ ♥</div>
+            <div className="v" data-testid="lives-value">
+              {playable
+                ? lives > 0
+                  ? Array.from({ length: lives }, () => "♥").join(" ")
+                  : "—"
+                : "♥ ♥ ♥"}
+            </div>
           </div>
           <div className="hud-stat level">
             <div className="l">Nivel</div>
-            <div className="v">{String(level).padStart(2, "0")}</div>
+            <div className="v" data-testid="level-value">
+              {String(level).padStart(2, "0")}
+            </div>
           </div>
         </div>
         <div className="hud-actions">
@@ -87,13 +110,22 @@ export default function PlayerScreen({ game }: { game: Game }) {
       </div>
       <div className="crt">
         <div className="crt-screen">
-          <div className="game-arena">
-            <div className="grid-floor" />
-            <div className="enemy e1" />
-            <div className="enemy e2" />
-            <div className="enemy e3" />
-            <div className="player-ship" />
-          </div>
+          {playable ? (
+            <AsteroidsCanvas
+              key={runId}
+              running={!paused && !over}
+              onStats={handleStats}
+              onGameOver={() => setOver(true)}
+            />
+          ) : (
+            <div className="game-arena">
+              <div className="grid-floor" />
+              <div className="enemy e1" />
+              <div className="enemy e2" />
+              <div className="enemy e3" />
+              <div className="player-ship" />
+            </div>
+          )}
           {paused && (
             <div
               className="crt-content"
@@ -124,6 +156,9 @@ export default function PlayerScreen({ game }: { game: Game }) {
           <span>CARGA · 1MB</span>
         </div>
       </div>
+      {playable && (
+        <p className="controls-hint">← → ROTAR · ↑ IMPULSO · ESPACIO DISPARAR</p>
+      )}
       {over && (
         <div className="modal-bd">
           <div
