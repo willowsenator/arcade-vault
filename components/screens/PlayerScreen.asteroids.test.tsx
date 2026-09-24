@@ -22,6 +22,9 @@ vi.mock("@/components/games/AsteroidsCanvas", async () => {
         <button onClick={() => props.onStats({ score: 340, lives: 2, level: 3 })}>
           emit-stats
         </button>
+        <button onClick={() => props.onStats({ score: 340, lives: 0, level: 3 })}>
+          emit-dead
+        </button>
         <button onClick={props.onGameOver}>emit-over</button>
       </div>
     );
@@ -61,6 +64,12 @@ describe("PlayerScreen with the asteroids engine", () => {
     expect(screen.getByTestId("score-value").textContent).toBe("340");
     expect(screen.getByTestId("lives-value").textContent).toBe("♥ ♥");
     expect(screen.getByTestId("level-value").textContent).toBe("03");
+  });
+
+  it("shows a dash when the engine reports zero lives", () => {
+    renderPlayer();
+    fireEvent.click(screen.getByText("emit-dead"));
+    expect(screen.getByTestId("lives-value").textContent).toBe("—");
   });
 
   it("stops and resumes the game with PAUSA / REANUDAR", () => {
@@ -104,6 +113,20 @@ describe("PlayerScreen with the asteroids engine", () => {
     expect(screen.getByTestId("asteroids-canvas")).toHaveAttribute("data-running", "true");
   });
 
+  it("restarts from the final dialog when Escape is pressed", () => {
+    renderPlayer();
+    fireEvent.click(screen.getByText("emit-stats"));
+    fireEvent.click(screen.getByText("FIN"));
+    expect(mounts.count).toBe(1);
+
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByText("FIN DEL JUEGO")).toBeNull();
+    expect(mounts.count).toBe(2);
+    expect(screen.getByTestId("score-value").textContent).toBe("0");
+    expect(screen.getByTestId("lives-value").textContent).toBe("♥ ♥ ♥");
+    expect(screen.getByTestId("level-value").textContent).toBe("01");
+  });
+
   it("shows the controls hint in Spanish", () => {
     renderPlayer();
     expect(screen.getByText(/ROTAR.*IMPULSO.*DISPARAR/)).toBeInTheDocument();
@@ -114,5 +137,6 @@ describe("PlayerScreen with the asteroids engine", () => {
     expect(screen.queryByTestId("asteroids-canvas")).toBeNull();
     expect(container.querySelector(".enemy")).not.toBeNull();
     expect(screen.getByTestId("lives-value").textContent).toBe("♥ ♥ ♥");
+    expect(screen.queryByText(/ROTAR.*IMPULSO.*DISPARAR/)).toBeNull();
   });
 });

@@ -60,6 +60,14 @@ describe("Bullet", () => {
     bullet.update(1.2);
     expect(bullet.dead).toBe(true);
   });
+
+  it("remains alive just before its lifetime ends, then expires", () => {
+    const bullet = new Bullet(10, 10, 0);
+    bullet.update(1);
+    expect(bullet.dead).toBe(false);
+    bullet.update(0.101);
+    expect(bullet.dead).toBe(true);
+  });
 });
 
 describe("Ship", () => {
@@ -69,10 +77,28 @@ describe("Ship", () => {
     expect(ship.tryShoot()).toHaveLength(0);
   });
 
+  it("fires again when its cooldown expires, but not just before", () => {
+    const ship = new Ship();
+    ship.tryShoot();
+    ship.update(0.199, idle);
+    expect(ship.tryShoot()).toHaveLength(0);
+    ship.update(0.002, idle);
+    expect(ship.tryShoot()).toHaveLength(1);
+  });
+
   it("fires three bullets while triple shot is active", () => {
     const ship = new Ship();
     ship.tripleShot = 5;
     expect(ship.tryShoot()).toHaveLength(3);
+  });
+
+  it("reverts from triple shot after its timer expires", () => {
+    const ship = new Ship();
+    ship.tripleShot = 0.001;
+    expect(ship.tryShoot()).toHaveLength(3);
+    ship.shootCooldown = 0;
+    ship.update(0.001, idle);
+    expect(ship.tryShoot()).toHaveLength(1);
   });
 
   it("does not fire once dead", () => {

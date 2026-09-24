@@ -103,6 +103,39 @@ describe("AsteroidsGame", () => {
     expect(game.nextPowerupType()).toBe(first);
   });
 
+  it("drops the alternate pickup type after a bullet kill when the roll succeeds", () => {
+    const game = new AsteroidsGame(() => 0);
+    const rock = new Asteroid(() => 0, 100, 100, 1);
+    game.asteroids = [rock, new Asteroid(() => 0, 700, 500, 3)];
+    game.ship.invincible = 0;
+    game.bullets = [new Bullet(100, 100, 0)];
+    game.update(TICK, idle);
+
+    expect(game.powerups).toHaveLength(1);
+    expect(game.powerups[0]).toMatchObject({ x: rock.x, y: rock.y, type: "shield" });
+  });
+
+  it("does not drop a pickup after a bullet kill when the roll misses", () => {
+    const game = new AsteroidsGame(() => 0.99);
+    game.asteroids = [
+      new Asteroid(() => 0.99, 100, 100, 1),
+      new Asteroid(() => 0.99, 700, 500, 3),
+    ];
+    game.ship.invincible = 0;
+    game.bullets = [new Bullet(100, 100, 0)];
+    game.update(TICK, idle);
+    expect(game.powerups).toHaveLength(0);
+  });
+
+  it("does not roll for a pickup when a shield destroys a rock", () => {
+    const game = new AsteroidsGame(() => 0);
+    game.asteroids = [rockOnShip(), new Asteroid(seeded(9), 700, 500, 3)];
+    game.ship.shield = SHIELD_TIME;
+    game.ship.invincible = 0;
+    game.update(TICK, idle);
+    expect(game.powerups).toHaveLength(0);
+  });
+
   it("lets a shield absorb an asteroid instead of killing the ship", () => {
     const game = gameWith(rockOnShip());
     game.ship.shield = SHIELD_TIME;
@@ -114,6 +147,25 @@ describe("AsteroidsGame", () => {
     expect(game.ship.shield).toBeGreaterThan(0);
     // fragments born this frame are not re-evaluated against the shield
     expect(game.asteroids.filter((a) => a.size === 2)).toHaveLength(2);
+  });
+
+  it("makes shield expiry vulnerable at its exact boundary", () => {
+    const expired = gameWith(rockOnShip());
+    expired.ship.shield = TICK;
+    expired.update(TICK, idle);
+    expect(expired.lives).toBe(START_LIVES - 1);
+
+    const active = gameWith(rockOnShip());
+    active.ship.shield = 2 * TICK;
+    active.update(TICK, idle);
+    expect(active.lives).toBe(START_LIVES);
+  });
+
+  it("consumes a bullet when it hits a rock", () => {
+    const game = gameWith(new Asteroid(seeded(5), 100, 100, 1));
+    game.bullets = [new Bullet(100, 100, 0)];
+    game.update(TICK, idle);
+    expect(game.bullets).toEqual([]);
   });
 
   it.each([
@@ -135,6 +187,24 @@ describe("AsteroidsGame", () => {
     expect(game.level).toBe(2);
     expect(game.asteroids.length).toBeGreaterThan(0);
     expect(game.bullets).toHaveLength(0);
+  });
+
+  it("resets the ship and creates a safe, clean next level", () => {
+    const game = new AsteroidsGame(seeded(8));
+    game.asteroids = [new Asteroid(seeded(5), 100, 100, 1)];
+    game.bullets = [new Bullet(100, 100, 0)];
+    game.powerups = [new Powerup(seeded(6), 700, 500, "shield")];
+    game.update(TICK, idle);
+
+    expect(game.asteroids).toHaveLength(3 + game.level);
+    // 130 is the private spawn-safety distance used by the game engine.
+    for (const rock of game.asteroids) {
+      expect(Math.hypot(rock.x - game.ship.x, rock.y - game.ship.y)).toBeGreaterThanOrEqual(130);
+    }
+    expect(game.powerups).toEqual([]);
+    expect(game.particles).toEqual([]);
+    expect(game.ship).toMatchObject({ x: W / 2, y: H / 2 });
+    expect(game.ship.invincible).toBeGreaterThan(0);
   });
 
   it("keeps a spawn-invincible ship alive when a rock touches it", () => {
