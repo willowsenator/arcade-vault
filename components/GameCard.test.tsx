@@ -4,11 +4,26 @@ import GameCard from "./GameCard";
 import { GAMES } from "@/lib/data";
 
 describe("GameCard", () => {
-  it("links to the game detail route and shows its title and score", () => {
-    const game = GAMES[0];
-    render(<GameCard game={game} />);
+  const game = GAMES[0];
+
+  it("links to the game detail route and shows its title", () => {
+    render(<GameCard game={game} best={12345} />);
     expect(screen.getByRole("link")).toHaveAttribute("href", `/games/${game.id}`);
     expect(screen.getByText(game.title)).toBeInTheDocument();
-    expect(screen.getByText(game.best.toLocaleString("es-ES"))).toBeInTheDocument();
+  });
+
+  it("shows the best score formatted for Spanish", () => {
+    render(<GameCard game={game} best={12345} />);
+    expect(screen.getByText("12.345")).toBeInTheDocument();
+  });
+
+  it("does not group four-digit scores, as es-ES only groups from five digits", () => {
+    render(<GameCard game={game} best={1234} />);
+    expect(screen.getByText("1234")).toBeInTheDocument();
+  });
+
+  it.each([0, null])("shows a dash when the best score is %s", (best) => {
+    render(<GameCard game={game} best={best} />);
+    expect(screen.getByText("—")).toBeInTheDocument();
   });
 });
