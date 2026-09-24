@@ -1,92 +1,112 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import HomeScreen from "./HomeScreen";
-import { GAMES, seededScores } from "@/lib/data";
-
-function parsePlays(value: string): number {
-  const trimmed = value.trim();
-  if (trimmed.endsWith("K")) return Math.round(parseFloat(trimmed) * 1000);
-  return Number.parseInt(trimmed, 10) || 0;
-}
+import { GAMES } from "@/lib/data";
+import { SCORES_LOAD_ERROR } from "@/lib/messages";
 
 function formatTotalPlays(total: number): string {
   return total >= 1000 ? `${(total / 1000).toFixed(1)}K+` : `${total}+`;
 }
 
+const preview = GAMES.slice(0, 7);
+const data = {
+  stats: {
+    [GAMES[0].id]: { best: 28450, plays: 1200 },
+    [GAMES[1].id]: { best: 184220, plays: 800 },
+  },
+  recent: Object.fromEntries(
+    preview.map((game, index) => [
+      game.id,
+      index === 2 ? [] : [{ rank: 1, name: `JUG${index}`, score: 12345 + index, date: "01/01/2026" }],
+    ]),
+  ),
+  topPlayers: [
+    { name: "ANA", score: 99999, game: GAMES[0].id },
+    { name: "BEA", score: 88888, game: GAMES[1].id },
+    { name: "CAL", score: 77777, game: GAMES[0].id },
+    { name: "DAN", score: 66666, game: GAMES[1].id },
+    { name: "EVA", score: 55555, game: GAMES[0].id },
+  ],
+};
+
 describe("HomeScreen", () => {
   it("links the hero CTAs to the library and the sign-up flow", () => {
-    render(<HomeScreen />);
-    expect(screen.getByText("▶ EXPLORAR JUEGOS")).toHaveAttribute(
-      "href",
-      "/biblioteca",
-    );
-    expect(screen.getByText("✦ CREAR CUENTA")).toHaveAttribute(
-      "href",
-      "/auth",
-    );
+    render(<HomeScreen {...data} />);
+    expect(screen.getByText("▶ EXPLORAR JUEGOS")).toHaveAttribute("href", "/biblioteca");
+    expect(screen.getByText("✦ CREAR CUENTA")).toHaveAttribute("href", "/auth");
   });
 
   it("previews at most six real games, each linking to its detail page", () => {
-    render(<HomeScreen />);
-    const preview = GAMES.slice(0, 6);
-    preview.forEach((game) => {
+    render(<HomeScreen {...data} />);
+    const first = GAMES.slice(0, 6);
+    first.forEach((game) => {
       expect(screen.getByText(game.title)).toBeInTheDocument();
     });
-    expect(screen.getByText(preview[0].title).closest("a")).toHaveAttribute(
+    expect(screen.getByText(first[0].title).closest("a")).toHaveAttribute(
       "href",
-      `/games/${preview[0].id}`,
+      `/games/${first[0].id}`,
     );
     if (GAMES.length > 6) {
       expect(screen.queryByText(GAMES[6].title)).not.toBeInTheDocument();
     }
   });
 
-  it("shows a games-played stat derived from the real game count, not a hardcoded number", () => {
-    render(<HomeScreen />);
+  it("shows a games stat derived from the real game count, not a hardcoded number", () => {
+    render(<HomeScreen {...data} />);
     expect(screen.getByText(`${GAMES.length}+`)).toBeInTheDocument();
   });
 
-  it("lists one recent-score row per previewed game, sourced from seededScores", () => {
-    render(<HomeScreen />);
-    GAMES.slice(0, 7).forEach((game) => {
-      expect(screen.getByText(`▸ ${game.title}`)).toBeInTheDocument();
+  it("lists a recent-score row per previewed game that has scores, and none for an empty game", () => {
+    render(<HomeScreen {...data} />);
+    preview.forEach((game, index) => {
+      const row = screen.queryByText(`▸ ${game.title}`);
+      if (index === 2) {
+        expect(row).not.toBeInTheDocument();
+        return;
+      }
+      expect(row).toBeInTheDocument();
+      expect(screen.getByText(`JUG${index}`)).toBeInTheDocument();
+      expect(screen.getByText(`+${(12345 + index).toLocaleString("es-ES")}`)).toBeInTheDocument();
+    });
+  });
+
+  it("renders the top players with padded ranks, names and scores", () => {
+    render(<HomeScreen {...data} />);
+    ["#01", "#02", "#03", "#04", "#05"].forEach((rank) => {
+      expect(screen.getByText(rank)).toBeInTheDocument();
+    });
+    data.topPlayers.forEach((row) => {
+      expect(screen.getByText(row.name)).toBeInTheDocument();
+      expect(screen.getByText(row.score.toLocaleString("es-ES"))).toBeInTheDocument();
     });
   });
 
   it("links the top-players preview to the salón de la fama", () => {
-    render(<HomeScreen />);
-    expect(screen.getByText("VER SALÓN →")).toHaveAttribute(
-      "href",
-      "/leaderboard",
-    );
+    render(<HomeScreen {...data} />);
+    expect(screen.getByText("VER SALÓN →")).toHaveAttribute("href", "/leaderboard");
   });
 
-  it("shows a PARTIDAS stat computed from the real per-game play counts", () => {
-    render(<HomeScreen />);
-    const totalPlays = GAMES.reduce(
-      (sum, game) => sum + parsePlays(game.plays),
-      0,
-    );
-    expect(
-      screen.getByText(formatTotalPlays(totalPlays)),
-    ).toBeInTheDocument();
+  it("shows a PARTIDAS stat summed from the real play counts", () => {
+    render(<HomeScreen {...data} />);
+    expect(screen.getByText(formatTotalPlays(2000))).toBeInTheDocument();
     expect(screen.getByText("PARTIDAS")).toBeInTheDocument();
   });
 
-  it("renders the top-players preview sourced from seededScores", () => {
-    render(<HomeScreen />);
-    const [topPlayer] = seededScores(7, 5);
-    expect(screen.getByText(topPlayer.name)).toBeInTheDocument();
-    expect(
-      screen.getByText(topPlayer.score.toLocaleString("es-ES")),
-    ).toBeInTheDocument();
+  it("shows empty texts when there are no scores yet", () => {
+    render(<HomeScreen stats={{}} recent={{}} topPlayers={[]} />);
+    expect(screen.getAllByText("AÚN NO HAY PUNTUACIONES")).toHaveLength(2);
+    expect(screen.getByText(formatTotalPlays(0))).toBeInTheDocument();
+  });
+
+  it("shows the load error and a dash for PARTIDAS when nothing could be loaded", () => {
+    render(<HomeScreen stats={null} recent={null} topPlayers={null} />);
+    expect(screen.getAllByText(SCORES_LOAD_ERROR)).toHaveLength(2);
+    expect(screen.getAllByRole("alert")).toHaveLength(2);
+    expect(screen.getByText("—")).toBeInTheDocument();
   });
 
   it("links the final call to action back to the library", () => {
-    render(<HomeScreen />);
-    expect(screen.getByText("INSERTAR MONEDA →")).toHaveAttribute(
-      "href",
-      "/biblioteca",
-    );
+    render(<HomeScreen {...data} />);
+    expect(screen.getByText("INSERTAR MONEDA →")).toHaveAttribute("href", "/biblioteca");
   });
 });

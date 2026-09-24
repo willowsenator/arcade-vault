@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { GAMES, seededScores } from "@/lib/data";
+import { GAMES, type ScoreRow } from "@/lib/data";
+import { SCORES_LOAD_ERROR } from "@/lib/messages";
+import type { GameStats, TopPlayer } from "@/lib/score-queries";
 import { useReveal } from "@/lib/useReveal";
 
-function parsePlays(value: string): number {
-  const trimmed = value.trim();
-  if (trimmed.endsWith("K")) return Math.round(parseFloat(trimmed) * 1000);
-  return Number.parseInt(trimmed, 10) || 0;
-}
+type HomeScreenProps = {
+  stats: Record<string, GameStats> | null;
+  recent: Record<string, ScoreRow[]> | null;
+  topPlayers: TopPlayer[] | null;
+};
 
 function formatTotalPlays(total: number): string {
   return total >= 1000 ? `${(total / 1000).toFixed(1)}K+` : `${total}+`;
@@ -200,33 +202,27 @@ function FloatingSilhouettes() {
   );
 }
 
-export default function HomeScreen() {
+export default function HomeScreen({ stats, recent, topPlayers }: HomeScreenProps) {
   useReveal();
   const previewGames = GAMES.slice(0, 6);
-  const totalPlays = GAMES.reduce(
-    (sum, game) => sum + parsePlays(game.plays),
-    0,
-  );
-  const stats = [
+  const totalPlays = stats
+    ? Object.values(stats).reduce((sum, entry) => sum + entry.plays, 0)
+    : null;
+  const heroStats = [
     { n: `${GAMES.length}+`, u: "JUEGOS", s: "Y CONTANDO" },
     {
-      n: formatTotalPlays(totalPlays),
+      n: totalPlays === null ? "—" : formatTotalPlays(totalPlays),
       u: "PARTIDAS",
       s: "REGISTRADAS EN EL VAULT",
     },
     { n: "GLOBAL", u: "RANKING", s: "COMPITE CON EL MUNDO" },
   ];
-  const recentScores = GAMES.slice(0, 7).map((game) => {
-    const [top] = seededScores(game.id.length * 17 + 3, 1);
-    return {
-      player: top.name,
-      title: game.title,
-      score: top.score,
-      color: game.color,
-      cat: game.cat,
-    };
+  const recentScores = GAMES.slice(0, 7).flatMap((game) => {
+    const top = recent?.[game.id]?.[0];
+    return top
+      ? [{ player: top.name, title: game.title, score: top.score, color: game.color, cat: game.cat }]
+      : [];
   });
-  const topPlayers = seededScores(7, 5);
 
   return (
     <div className="home fade-in">
@@ -310,7 +306,7 @@ export default function HomeScreen() {
 
       <section className="home-stats reveal">
         <div className="stats-inner">
-          {stats.map((stat, index) => (
+          {heroStats.map((stat, index) => (
             <div
               key={stat.u}
               className="stat-block"
@@ -336,18 +332,26 @@ export default function HomeScreen() {
               <div className="ac-title pixel">▸ ÚLTIMAS PUNTUACIONES</div>
             </div>
             <div className="ticker">
-              {recentScores.map((row, index) => (
-                <div
-                  key={row.title}
-                  className="tick-row"
-                  style={{ animationDelay: `${index * 60}ms` }}
-                >
-                  <span className={`tk-p neon-${row.color}`}>{row.player}</span>
-                  <span className="tk-mid">▸ {row.title}</span>
-                  <span className="tk-s">+{row.score.toLocaleString("es-ES")}</span>
-                  <span className="tk-t">{row.cat}</span>
+              {recent === null ? (
+                <div role="alert" style={{ color: "var(--magenta)" }}>
+                  {SCORES_LOAD_ERROR}
                 </div>
-              ))}
+              ) : recentScores.length === 0 ? (
+                <div style={{ color: "var(--ink-faint)" }}>AÚN NO HAY PUNTUACIONES</div>
+              ) : (
+                recentScores.map((row, index) => (
+                  <div
+                    key={row.title}
+                    className="tick-row"
+                    style={{ animationDelay: `${index * 60}ms` }}
+                  >
+                    <span className={`tk-p neon-${row.color}`}>{row.player}</span>
+                    <span className="tk-mid">▸ {row.title}</span>
+                    <span className="tk-s">+{row.score.toLocaleString("es-ES")}</span>
+                    <span className="tk-t">{row.cat}</span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -359,16 +363,24 @@ export default function HomeScreen() {
               </Link>
             </div>
             <div className="top-list">
-              {topPlayers.map((row, index) => (
-                <div
-                  key={row.name}
-                  className={`top-row${rankClass(index)}`}
-                >
-                  <span className="tp-rk">#{String(row.rank).padStart(2, "0")}</span>
-                  <span className="tp-p">{row.name}</span>
-                  <span className="tp-s">{row.score.toLocaleString("es-ES")}</span>
+              {topPlayers === null ? (
+                <div role="alert" style={{ color: "var(--magenta)" }}>
+                  {SCORES_LOAD_ERROR}
                 </div>
-              ))}
+              ) : topPlayers.length === 0 ? (
+                <div style={{ color: "var(--ink-faint)" }}>AÚN NO HAY PUNTUACIONES</div>
+              ) : (
+                topPlayers.map((row, index) => (
+                  <div
+                    key={`${row.game}-${row.name}-${index}`}
+                    className={`top-row${rankClass(index)}`}
+                  >
+                    <span className="tp-rk">#{String(index + 1).padStart(2, "0")}</span>
+                    <span className="tp-p">{row.name}</span>
+                    <span className="tp-s">{row.score.toLocaleString("es-ES")}</span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
