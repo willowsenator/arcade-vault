@@ -28,14 +28,6 @@ describe("GameDetailScreen", () => {
     expect(stat("Mejor global").getByText("—")).toBeInTheDocument();
   });
 
-  it("shows dashes and one error when the scores could not be loaded", () => {
-    const { container } = render(<GameDetailScreen game={game} stats={null} topScores={null} />);
-    expect(stat("Partidas").getByText("—")).toBeInTheDocument();
-    expect(stat("Mejor global").getByText("—")).toBeInTheDocument();
-    expect(screen.getByRole("alert")).toHaveTextContent("NO SE PUDIERON CARGAR LAS PUNTUACIONES");
-    expect(rows(container)).toHaveLength(0);
-  });
-
   it("shows an empty state when there are no scores yet", () => {
     const { container } = render(
       <GameDetailScreen game={game} stats={{ best: 0, plays: 0 }} topScores={[]} />,
@@ -70,19 +62,12 @@ describe("GameDetailScreen", () => {
     expect(cells(listed[1])).toEqual({ rk: "#02", pl: "LUIS10/05/2026", sc: "0" });
   });
 
-  it("shows stats with an error in the list when only the scores failed", () => {
-    render(<GameDetailScreen game={game} stats={{ best: 90000, plays: 12345 }} topScores={null} />);
-    expect(stat("Partidas").getByText("12.345")).toBeInTheDocument();
-    expect(screen.getByRole("alert")).toHaveTextContent("NO SE PUDIERON CARGAR LAS PUNTUACIONES");
-  });
-
   it("shows the list with dashes for stats when only the stats are missing", () => {
     const topScores: ScoreRow[] = [{ rank: 1, name: "ANA", score: 10, date: "09/05/2026" }];
     const { container } = render(<GameDetailScreen game={game} stats={null} topScores={topScores} />);
     expect(stat("Partidas").getByText("—")).toBeInTheDocument();
     expect(stat("Mejor global").getByText("—")).toBeInTheDocument();
     expect(rows(container)).toHaveLength(1);
-    expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it("keeps two rows for the same name apart", () => {

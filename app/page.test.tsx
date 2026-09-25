@@ -45,11 +45,9 @@ describe("home route", () => {
     ).toBe(true);
   });
 
-  it("passes three nulls when the scores cannot be loaded", async () => {
-    mocks.withScores.mockResolvedValue(null);
-    const element = (await Home()) as ReactElement<Record<string, unknown>>;
-    expect(element.props.stats).toBeNull();
-    expect(element.props.recent).toBeNull();
-    expect(element.props.topPlayers).toBeNull();
+  it("rejects when the scores cannot be loaded", async () => {
+    const failure = new Error("scores down");
+    mocks.withScores.mockRejectedValue(failure);
+    await expect(Home()).rejects.toBe(failure);
   });
 });

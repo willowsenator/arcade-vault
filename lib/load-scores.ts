@@ -1,19 +1,14 @@
-import { cookies } from "next/headers";
 import type { ScoresClient } from "@/lib/score-queries";
-import { createClient } from "@/utils/supabase/server";
-import { withTimeout } from "@/lib/with-timeout";
-
-export const LOAD_TIMEOUT_MS = 8_000;
+import { createPublicClient } from "@/utils/supabase/public";
+import { LOAD_TIMEOUT_MS, withTimeout } from "@/lib/with-timeout";
 
 export async function withScores<T>(
   load: (client: ScoresClient) => Promise<T>,
-): Promise<T | null> {
-  // Outside the try: cookies() throws Next's own rendering signals, which must reach the framework.
-  const cookieStore = await cookies();
+): Promise<T> {
   try {
-    return await withTimeout(load(createClient(cookieStore)), LOAD_TIMEOUT_MS);
+    return await withTimeout(load(createPublicClient()), LOAD_TIMEOUT_MS);
   } catch (error) {
     console.error("Scores unavailable:", error);
-    return null;
+    throw error;
   }
 }

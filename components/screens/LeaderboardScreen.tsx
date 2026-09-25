@@ -7,7 +7,6 @@ import {
   NO_SCORES_YET,
   OWN_BEST_LOADING,
   OWN_BEST_LOAD_ERROR,
-  SCORES_LOAD_ERROR,
   noOwnBest,
 } from "@/lib/messages";
 import { useOwnBest, type OwnBestState } from "@/components/screens/useOwnBest";
@@ -53,11 +52,11 @@ function OwnBestRow({
 export default function LeaderboardScreen({
   topByGame,
 }: {
-  topByGame: Record<string, ScoreRow[]> | null;
+  topByGame: Record<string, ScoreRow[]>;
 }) {
   const { user } = useAuth();
   const [tab, setTab] = useState(GAMES[0].id);
-  const rows = topByGame?.[tab] ?? [];
+  const rows = topByGame[tab] ?? [];
   const game = GAMES.find((candidate) => candidate.id === tab)!;
   const own = useOwnBest(tab, user?.name ?? null);
   const [gold, silver, bronze] = rows;
@@ -80,8 +79,7 @@ export default function LeaderboardScreen({
           </button>
         ))}
       </div>
-      {topByGame === null && <div role="alert">{SCORES_LOAD_ERROR}</div>}
-      {topByGame !== null && rows.length === 0 && <div>{NO_SCORES_YET}</div>}
+      {rows.length === 0 && <div>{NO_SCORES_YET}</div>}
       {rows.length > 0 && (
         <div className="podium">
           {silver && (

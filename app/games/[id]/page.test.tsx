@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactElement } from "react";
-import GameDetailPage from "./page";
+import GameDetailPage, { generateStaticParams } from "./page";
 import PlayerPage from "./play/page";
 import { GAMES } from "@/lib/data";
 import { DETAIL_SIZE } from "@/lib/score-queries";
@@ -23,6 +23,10 @@ describe("game routes", () => {
   beforeEach(() => {
     mocks.notFound.mockClear();
     mocks.withScores.mockReset();
+  });
+
+  it("prerenders a detail page for every catalog game", () => {
+    expect(generateStaticParams()).toEqual(GAMES.map(({ id }) => ({ id })));
   });
 
   it("calls notFound for an unknown detail game id", async () => {
@@ -67,10 +71,9 @@ describe("game routes", () => {
     expect(element.props.topScores).toHaveLength(1);
   });
 
-  it("passes nulls to the screen when the scores cannot be loaded", async () => {
-    mocks.withScores.mockResolvedValue(null);
-    const element = (await GameDetailPage(params(game.id))) as ReactElement<Record<string, unknown>>;
-    expect(element.props.stats).toBeNull();
-    expect(element.props.topScores).toBeNull();
+  it("rejects when the scores cannot be loaded", async () => {
+    const failure = new Error("scores down");
+    mocks.withScores.mockRejectedValue(failure);
+    await expect(GameDetailPage(params(game.id))).rejects.toBe(failure);
   });
 });

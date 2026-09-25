@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { GAMES, RECENT_TICKER_GAMES, type ScoreRow } from "@/lib/data";
-import { NO_SCORES_YET, SCORES_LOAD_ERROR } from "@/lib/messages";
+import { NO_SCORES_YET } from "@/lib/messages";
 import type { GameStats, TopPlayer } from "@/lib/score-queries";
 import { useReveal } from "@/lib/useReveal";
 
 type HomeScreenProps = {
-  stats: Record<string, GameStats> | null;
-  recent: Record<string, ScoreRow[]> | null;
-  topPlayers: TopPlayer[] | null;
+  stats: Record<string, GameStats>;
+  recent: Record<string, ScoreRow[]>;
+  topPlayers: TopPlayer[];
 };
 
 function formatTotalPlays(total: number): string {
@@ -205,20 +205,18 @@ function FloatingSilhouettes() {
 export default function HomeScreen({ stats, recent, topPlayers }: HomeScreenProps) {
   useReveal();
   const previewGames = GAMES.slice(0, 6);
-  const totalPlays = stats
-    ? Object.values(stats).reduce((sum, entry) => sum + entry.plays, 0)
-    : null;
+  const totalPlays = Object.values(stats).reduce((sum, entry) => sum + entry.plays, 0);
   const heroStats = [
     { n: `${GAMES.length}+`, u: "JUEGOS", s: "Y CONTANDO" },
     {
-      n: totalPlays === null ? "—" : formatTotalPlays(totalPlays),
+      n: formatTotalPlays(totalPlays),
       u: "PARTIDAS",
       s: "REGISTRADAS EN EL VAULT",
     },
     { n: "GLOBAL", u: "RANKING", s: "COMPITE CON EL MUNDO" },
   ];
   const recentScores = GAMES.slice(0, RECENT_TICKER_GAMES).flatMap((game) => {
-    const top = recent?.[game.id]?.[0];
+    const top = recent[game.id]?.[0];
     return top
       ? [{ player: top.name, title: game.title, score: top.score, color: game.color, cat: game.cat }]
       : [];
@@ -332,11 +330,7 @@ export default function HomeScreen({ stats, recent, topPlayers }: HomeScreenProp
               <div className="ac-title pixel">▸ ÚLTIMAS PUNTUACIONES</div>
             </div>
             <div className="ticker">
-              {recent === null ? (
-                <div role="alert" style={{ color: "var(--magenta)" }}>
-                  {SCORES_LOAD_ERROR}
-                </div>
-              ) : recentScores.length === 0 ? (
+              {recentScores.length === 0 ? (
                 <div style={{ color: "var(--ink-faint)" }}>{NO_SCORES_YET}</div>
               ) : (
                 recentScores.map((row, index) => (
@@ -363,11 +357,7 @@ export default function HomeScreen({ stats, recent, topPlayers }: HomeScreenProp
               </Link>
             </div>
             <div className="top-list">
-              {topPlayers === null ? (
-                <div role="alert" style={{ color: "var(--magenta)" }}>
-                  {SCORES_LOAD_ERROR}
-                </div>
-              ) : topPlayers.length === 0 ? (
+              {topPlayers.length === 0 ? (
                 <div style={{ color: "var(--ink-faint)" }}>{NO_SCORES_YET}</div>
               ) : (
                 topPlayers.map((row, index) => (

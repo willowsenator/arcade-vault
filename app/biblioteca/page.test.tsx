@@ -8,7 +8,9 @@ const { default: BibliotecaPage } = await import("./page");
 const { fetchGameStats } = await import("@/lib/score-queries");
 
 describe("BibliotecaPage", () => {
-  beforeEach(() => loader.withScores.mockReset());
+  beforeEach(() => {
+    loader.withScores.mockReset();
+  });
 
   it("loads the game stats through withScores and shows the best scores", async () => {
     loader.withScores.mockResolvedValue({ rocas: { best: 42000, plays: 5 } });
@@ -18,9 +20,9 @@ describe("BibliotecaPage", () => {
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
-  it("shows the error state when the scores cannot be loaded", async () => {
-    loader.withScores.mockResolvedValue(null);
-    render(await BibliotecaPage());
-    expect(screen.getByRole("alert")).toHaveTextContent("NO SE PUDIERON CARGAR LAS PUNTUACIONES");
+  it("rejects when the scores cannot be loaded", async () => {
+    const failure = new Error("scores down");
+    loader.withScores.mockRejectedValue(failure);
+    await expect(BibliotecaPage()).rejects.toBe(failure);
   });
 });

@@ -1,3 +1,5 @@
+export const LOAD_TIMEOUT_MS = 8_000;
+
 export function withTimeout<T>(work: PromiseLike<T>, ms: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const deadline = new Promise<never>((_resolve, reject) => {

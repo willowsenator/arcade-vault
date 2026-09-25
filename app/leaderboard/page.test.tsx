@@ -1,8 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
 import type { ReactElement } from "react";
 import LeaderboardPage from "./page";
-import { AuthProvider } from "@/components/AuthProvider";
 import { GAMES } from "@/lib/data";
 import { LEADERBOARD_SIZE } from "@/lib/score-queries";
 
@@ -34,9 +32,9 @@ describe("LeaderboardPage", () => {
     expect(element.props.topByGame).toBe(topByGame);
   });
 
-  it("renders the error state when the scores are unavailable", async () => {
-    mocks.withScores.mockResolvedValue(null);
-    render(<AuthProvider>{await LeaderboardPage()}</AuthProvider>);
-    expect(screen.getByRole("alert")).toHaveTextContent("NO SE PUDIERON CARGAR LAS PUNTUACIONES");
+  it("rejects when the scores are unavailable", async () => {
+    const failure = new Error("scores down");
+    mocks.withScores.mockRejectedValue(failure);
+    await expect(LeaderboardPage()).rejects.toBe(failure);
   });
 });

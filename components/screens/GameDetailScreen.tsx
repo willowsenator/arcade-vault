@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Game, ScoreRow } from "@/lib/data";
-import { NO_SCORES_YET, SCORES_LOAD_ERROR } from "@/lib/messages";
+import { NO_SCORES_YET } from "@/lib/messages";
 import type { GameStats } from "@/lib/score-queries";
 
 export default function GameDetailScreen({
@@ -10,7 +10,7 @@ export default function GameDetailScreen({
 }: {
   game: Game;
   stats: GameStats | null;
-  topScores: ScoreRow[] | null;
+  topScores: ScoreRow[];
 }) {
   return (
     <div className="av-detail fade-in">
@@ -70,11 +70,7 @@ export default function GameDetailScreen({
       <aside>
         <div className="leaderboard">
           <h3>MEJORES PUNTUACIONES</h3>
-          {topScores === null ? (
-            <div role="alert" style={{ color: "var(--magenta)" }}>
-              {SCORES_LOAD_ERROR}
-            </div>
-          ) : topScores.length === 0 ? (
+          {topScores.length === 0 ? (
             <div style={{ color: "var(--ink-faint)" }}>{NO_SCORES_YET}</div>
           ) : (
             topScores.map((row, index) => (
