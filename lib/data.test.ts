@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { GAMES, CATS, seededScores } from "./data";
+import { GAMES, CATS } from "./data";
 
 describe("data", () => {
   it("GAMES has 8 unique ids", () => {
@@ -22,20 +22,5 @@ describe("data", () => {
     expect(rocas.long).not.toMatch(/ovni/i);
     expect(rocas.long).toMatch(/escudo/i);
     expect(rocas.long).toMatch(/triple/i);
-  });
-});
-
-describe("seededScores", () => {
-  it("is deterministic for a given seed", () => {
-    expect(seededScores(42, 5)).toEqual(seededScores(42, 5));
-  });
-
-  it("returns count rows sorted by score descending with sequential ranks", () => {
-    const rows = seededScores(7, 10);
-    expect(rows).toHaveLength(10);
-    expect(rows.map((r) => r.rank)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-    for (let i = 1; i < rows.length; i++) {
-      expect(rows[i - 1].score).toBeGreaterThanOrEqual(rows[i].score);
-    }
   });
 });

@@ -3,8 +3,14 @@
 import { useMemo, useState } from "react";
 import { CATS, GAMES } from "@/lib/data";
 import GameCard from "@/components/GameCard";
+import { SCORES_LOAD_ERROR } from "@/lib/messages";
+import type { GameStats } from "@/lib/score-queries";
 
-export default function LibraryScreen() {
+export default function LibraryScreen({
+  stats,
+}: {
+  stats: Record<string, GameStats> | null;
+}) {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("TODOS");
   const filtered = useMemo(
@@ -45,9 +51,14 @@ export default function LibraryScreen() {
           ))}
         </div>
       </div>
+      {stats === null && (
+        <div role="alert" style={{ textAlign: "center", color: "var(--magenta)" }}>
+          {SCORES_LOAD_ERROR}
+        </div>
+      )}
       <div className="av-grid">
         {filtered.map((game) => (
-          <GameCard key={game.id} game={game} />
+          <GameCard key={game.id} game={game} best={stats?.[game.id]?.best ?? null} />
         ))}
         {filtered.length === 0 && (
           <div
