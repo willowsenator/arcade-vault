@@ -20,7 +20,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 Copy `.env.example` to `.env.local` and set `RESEND_API_KEY` to send email from the contact form at `/about`. Without it, the form still submits but shows a generic send-failure message.
 
-Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (from the project's Supabase dashboard → Connect → Framework) to use the Supabase client helpers under `utils/supabase/`. `/`, `/biblioteca`, `/games/[id]` and `/leaderboard` load real scores from Supabase and show an error state when they are unavailable. The session-refresh proxy (`proxy.ts`) fails open — it logs an error and lets the request through — if these are unset, so the site still runs without them.
+Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (from the project's Supabase dashboard → Connect → Framework) to use the Supabase client helpers under `utils/supabase/`. `/`, `/biblioteca`, `/games/[id]` and `/leaderboard` load real scores from Supabase, so `npm run build` needs these variables and a reachable Supabase, and fails without them. These pages are statically regenerated at most every 60 seconds, so a new score can take up to a minute to show in public lists. If a regeneration fails, the last good page keeps being served and the next request retries; if the first render of a score page fails, it lands on a generic segment-wide error page (neutral Spanish message, REINTENTAR retry). The session-refresh proxy (`proxy.ts`) fails open — it logs an error and lets the request through — if these are unset, but that only covers the session refresh, not the score pages.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
@@ -28,7 +28,7 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ## Supabase scores
 
-The owner applies the scores migration; the app does not apply it. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in the deployment environment, and keep all secrets out of the repository.
+The owner applies the scores migration; the app does not apply it. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in the deployment environment, and keep all secrets out of the repository. The public score pages (`/`, `/biblioteca`, `/games/[id]`, `/leaderboard`) are regenerated at most every 60 seconds, so a saved score can take up to a minute to appear in public lists (the player's own best is fetched client-side and is fresh). The build fails if Supabase is unreachable or the variables are unset at build time, since these pages are prerendered. A failed background regeneration keeps serving the last good page.
 
 To apply the migration with the Supabase CLI, run `supabase link --project-ref <ref>` and then `supabase db push`. Alternatively, paste `supabase/migrations/20260924120000_scores.sql` into the Supabase SQL editor and run it.
 

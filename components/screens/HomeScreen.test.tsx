@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import HomeScreen from "./HomeScreen";
 import { GAMES } from "@/lib/data";
-import { SCORES_LOAD_ERROR } from "@/lib/messages";
 
 const preview = GAMES.slice(0, 7);
 const data = {
@@ -101,13 +100,6 @@ describe("HomeScreen", () => {
     render(<HomeScreen stats={{}} recent={{}} topPlayers={[]} />);
     expect(screen.getAllByText("AÚN NO HAY PUNTUACIONES")).toHaveLength(2);
     expect(screen.getByText("0+")).toBeInTheDocument();
-  });
-
-  it("shows the load error and a dash for PARTIDAS when nothing could be loaded", () => {
-    render(<HomeScreen stats={null} recent={null} topPlayers={null} />);
-    expect(screen.getAllByText(SCORES_LOAD_ERROR)).toHaveLength(2);
-    expect(screen.getAllByRole("alert")).toHaveLength(2);
-    expect(screen.getByText("—")).toBeInTheDocument();
   });
 
   it("links the final call to action back to the library", () => {

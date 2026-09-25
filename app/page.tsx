@@ -8,6 +8,8 @@ import {
   fetchTopScoresByGame,
 } from "@/lib/score-queries";
 
+export const revalidate = 60;
+
 export default async function Home() {
   const data = await withScores(async (client) => {
     const [stats, recent, topPlayers] = await Promise.all([
@@ -18,10 +20,6 @@ export default async function Home() {
     return { stats, recent, topPlayers };
   });
   return (
-    <HomeScreen
-      stats={data?.stats ?? null}
-      recent={data?.recent ?? null}
-      topPlayers={data?.topPlayers ?? null}
-    />
+    <HomeScreen stats={data.stats} recent={data.recent} topPlayers={data.topPlayers} />
   );
 }

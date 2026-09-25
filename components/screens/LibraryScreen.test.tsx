@@ -53,9 +53,4 @@ describe("LibraryScreen", () => {
     expect(cardOf(GAMES[1].title).getByText("555")).toBeInTheDocument();
     expect(screen.queryByText("777")).toBeNull();
   });
-  it("shows an error and a dash on every card when the scores could not be loaded", () => {
-    render(<LibraryScreen stats={null} />);
-    expect(screen.getByRole("alert")).toHaveTextContent("NO SE PUDIERON CARGAR LAS PUNTUACIONES");
-    expect(screen.getAllByText("—")).toHaveLength(GAMES.length);
-  });
 });

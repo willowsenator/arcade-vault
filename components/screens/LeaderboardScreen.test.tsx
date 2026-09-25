@@ -18,7 +18,7 @@ const rocasRows: ScoreRow[] = [
 ];
 const topByGame = { rocas: rocasRows, [GAMES[1].id]: [] };
 
-function renderScreen(props: { topByGame: Record<string, ScoreRow[]> | null } = { topByGame }) {
+function renderScreen(props: { topByGame: Record<string, ScoreRow[]> } = { topByGame }) {
   return render(
     <AuthProvider>
       <LeaderboardScreen {...props} />
@@ -92,13 +92,6 @@ describe("LeaderboardScreen", () => {
     expect(screen.getByText("AÚN NO HAY PUNTUACIONES")).toBeInTheDocument();
     expect(tableRows(container)).toHaveLength(0);
     expect(container.querySelectorAll(".podium .name")).toHaveLength(0);
-  });
-
-  it("shows one error and no rows when the scores could not be loaded", () => {
-    const { container } = renderScreen({ topByGame: null });
-    openRocas();
-    expect(screen.getByRole("alert")).toHaveTextContent("NO SE PUDIERON CARGAR LAS PUNTUACIONES");
-    expect(tableRows(container)).toHaveLength(0);
   });
 
   it("links back to the library", () => {
