@@ -20,7 +20,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 Copy `.env.example` to `.env.local` and set `RESEND_API_KEY` to send email from the contact form at `/about`. Without it, the form still submits but shows a generic send-failure message.
 
-Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (from the project's Supabase dashboard → Connect → Framework) to use the Supabase client helpers under `utils/supabase/`. No page reads from Supabase yet, and the session-refresh proxy (`proxy.ts`) fails open — it logs an error and lets the request through — if these are unset, so the site still runs without them.
+Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (from the project's Supabase dashboard → Connect → Framework) to use the Supabase client helpers under `utils/supabase/`. `/`, `/biblioteca`, `/games/[id]` and `/leaderboard` load real scores from Supabase and show an error state when they are unavailable. The session-refresh proxy (`proxy.ts`) fails open — it logs an error and lets the request through — if these are unset, so the site still runs without them.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

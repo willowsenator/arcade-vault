@@ -5,8 +5,8 @@ export async function proxy(request: NextRequest) {
   try {
     return await updateSession(request);
   } catch (error) {
-    // No route depends on Supabase yet, so a missing/misconfigured env var
-    // should not take the whole site down — let the request through.
+    // Pages load scores through withScores, which handles missing configuration
+    // itself, so a failed session refresh should not take the whole site down.
     console.error("Supabase session refresh skipped:", error);
     return NextResponse.next();
   }
