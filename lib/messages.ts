@@ -1,1 +1,5 @@
 export const SCORES_LOAD_ERROR = "NO SE PUDIERON CARGAR LAS PUNTUACIONES";
+export const NO_SCORES_YET = "AÚN NO HAY PUNTUACIONES";
+export const OWN_BEST_LOAD_ERROR = "NO SE PUDO CARGAR TU MARCA";
+export const OWN_BEST_LOADING = "CARGANDO TU MARCA…";
+export const noOwnBest = (title: string) => `TODAVÍA NO TIENES PUNTUACIÓN EN ${title}`;
