@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Game } from "@/lib/data";
 import { useAuth } from "@/components/AuthProvider";
+import { NAME_REQUIRED_TO_SAVE, SAVE_SCORE_ERROR } from "@/lib/messages";
 import { insertScore } from "@/lib/score-queries";
 import { createClient } from "@/utils/supabase/client";
 import AsteroidsCanvas from "@/components/games/AsteroidsCanvas";
@@ -60,7 +61,7 @@ export default function PlayerScreen({ game }: { game: Game }) {
     if (saving) return;
     const playerName = name.trim();
     if (!playerName) {
-      setSaveError("ESCRIBE UN NOMBRE PARA GUARDAR");
+      setSaveError(NAME_REQUIRED_TO_SAVE);
       return;
     }
     const run = saveRunRef.current;
@@ -72,7 +73,7 @@ export default function PlayerScreen({ game }: { game: Game }) {
     } catch (error) {
       console.error("PlayerScreen: saving the score failed", { game: game.id }, error);
       if (saveRunRef.current === run) {
-        setSaveError("NO SE PUDO GUARDAR LA PUNTUACIÓN. INTÉNTALO DE NUEVO");
+        setSaveError(SAVE_SCORE_ERROR);
         nameInputRef.current?.focus();
       }
     } finally {

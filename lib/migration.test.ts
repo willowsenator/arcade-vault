@@ -1,3 +1,4 @@
+// These are text checks on the migration file; no test runs the SQL against Postgres.
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -38,14 +39,22 @@ describe("scores migration", () => {
     expect(grants).toContain("grant insert (game, name, score) on public.scores to anon, authenticated;");
   });
 
+  it("grants select on games and game_stats", () => {
+    expect(grants).toContain("grant select on public.games to anon, authenticated;");
+    expect(grants).toContain("grant select on public.game_stats to anon, authenticated;");
+  });
+
   it("never grants update, delete, truncate or all", () => {
     for (const grant of grants) expect(grant).not.toMatch(/\b(update|delete|truncate|all)\b/i);
   });
 
-  it("has no policy other than select and insert", () => {
+  it("defines exactly the expected policies, each open to anon and authenticated", () => {
     const policies = migration.match(/create policy [^;]+;/gi) ?? [];
-    expect(policies).toHaveLength(3);
-    for (const policy of policies) expect(policy).toMatch(/ for (select|insert) /i);
+    expect(policies).toEqual([
+      'create policy "games are readable by everyone" on public.games for select to anon, authenticated using (true);',
+      'create policy "scores are readable by everyone" on public.scores for select to anon, authenticated using (true);',
+      'create policy "anyone can submit a score" on public.scores for insert to anon, authenticated with check (true);',
+    ]);
   });
 
   it("constrains name length, upper-case name and score range", () => {

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { GAMES, type ScoreRow } from "@/lib/data";
-import { SCORES_LOAD_ERROR } from "@/lib/messages";
+import { GAMES, RECENT_TICKER_GAMES, type ScoreRow } from "@/lib/data";
+import { NO_SCORES_YET, SCORES_LOAD_ERROR } from "@/lib/messages";
 import type { GameStats, TopPlayer } from "@/lib/score-queries";
 import { useReveal } from "@/lib/useReveal";
 
@@ -217,7 +217,7 @@ export default function HomeScreen({ stats, recent, topPlayers }: HomeScreenProp
     },
     { n: "GLOBAL", u: "RANKING", s: "COMPITE CON EL MUNDO" },
   ];
-  const recentScores = GAMES.slice(0, 7).flatMap((game) => {
+  const recentScores = GAMES.slice(0, RECENT_TICKER_GAMES).flatMap((game) => {
     const top = recent?.[game.id]?.[0];
     return top
       ? [{ player: top.name, title: game.title, score: top.score, color: game.color, cat: game.cat }]
@@ -337,7 +337,7 @@ export default function HomeScreen({ stats, recent, topPlayers }: HomeScreenProp
                   {SCORES_LOAD_ERROR}
                 </div>
               ) : recentScores.length === 0 ? (
-                <div style={{ color: "var(--ink-faint)" }}>AÚN NO HAY PUNTUACIONES</div>
+                <div style={{ color: "var(--ink-faint)" }}>{NO_SCORES_YET}</div>
               ) : (
                 recentScores.map((row, index) => (
                   <div
@@ -368,7 +368,7 @@ export default function HomeScreen({ stats, recent, topPlayers }: HomeScreenProp
                   {SCORES_LOAD_ERROR}
                 </div>
               ) : topPlayers.length === 0 ? (
-                <div style={{ color: "var(--ink-faint)" }}>AÚN NO HAY PUNTUACIONES</div>
+                <div style={{ color: "var(--ink-faint)" }}>{NO_SCORES_YET}</div>
               ) : (
                 topPlayers.map((row, index) => (
                   <div

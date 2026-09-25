@@ -22,4 +22,6 @@ export const GAMES: Game[] = [
   { id: "duelo-pixel", title: "DUELO PIXEL", short: "Dos paletas. Una pelota. Reflejos máximos.", long: "El duelo más puro: dos paletas verticales se enfrentan por rebotar una pelota luminosa. Modo solitario contra la CPU o partida local a dos jugadores.", cat: "VERSUS", cover: "cover-duelo", color: "cyan" },
 ];
 
+export const RECENT_TICKER_GAMES = 7;
+
 export const CATS = ["TODOS", "ARCADE", "PUZZLE", "SHOOTER", "VERSUS"];

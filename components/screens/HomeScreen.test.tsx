@@ -4,10 +4,6 @@ import HomeScreen from "./HomeScreen";
 import { GAMES } from "@/lib/data";
 import { SCORES_LOAD_ERROR } from "@/lib/messages";
 
-function formatTotalPlays(total: number): string {
-  return total >= 1000 ? `${(total / 1000).toFixed(1)}K+` : `${total}+`;
-}
-
 const preview = GAMES.slice(0, 7);
 const data = {
   stats: {
@@ -88,14 +84,23 @@ describe("HomeScreen", () => {
 
   it("shows a PARTIDAS stat summed from the real play counts", () => {
     render(<HomeScreen {...data} />);
-    expect(screen.getByText(formatTotalPlays(2000))).toBeInTheDocument();
+    expect(screen.getByText("2.0K+")).toBeInTheDocument();
     expect(screen.getByText("PARTIDAS")).toBeInTheDocument();
+  });
+
+  it("switches the PARTIDAS stat to thousands exactly at 1000 plays", () => {
+    const withPlays = (plays: number) => ({ ...data, stats: { [GAMES[0].id]: { best: 1, plays } } });
+    const { unmount } = render(<HomeScreen {...withPlays(999)} />);
+    expect(screen.getByText("999+")).toBeInTheDocument();
+    unmount();
+    render(<HomeScreen {...withPlays(1000)} />);
+    expect(screen.getByText("1.0K+")).toBeInTheDocument();
   });
 
   it("shows empty texts when there are no scores yet", () => {
     render(<HomeScreen stats={{}} recent={{}} topPlayers={[]} />);
     expect(screen.getAllByText("AÚN NO HAY PUNTUACIONES")).toHaveLength(2);
-    expect(screen.getByText(formatTotalPlays(0))).toBeInTheDocument();
+    expect(screen.getByText("0+")).toBeInTheDocument();
   });
 
   it("shows the load error and a dash for PARTIDAS when nothing could be loaded", () => {

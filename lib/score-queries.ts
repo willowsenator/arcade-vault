@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ScoreRow } from "./data";
+import { withTimeout } from "./with-timeout";
 
 export type ScoresClient = Pick<SupabaseClient, "from">;
 export type ScoreInput = { game: string; name: string; score: number };
@@ -10,6 +11,7 @@ export type TopPlayer = { name: string; score: number; game: string };
 export const LEADERBOARD_SIZE = 12;
 export const DETAIL_SIZE = 10;
 export const TOP_PLAYERS_SIZE = 5;
+export const SAVE_TIMEOUT_MS = 10_000;
 
 type Failure = { message: string } | null;
 type ScoreRecord = { name: string; score: number; created_at: string };
@@ -35,9 +37,10 @@ function byRanking<T extends { order: (column: string, options: { ascending: boo
 }
 
 export async function insertScore(client: ScoresClient, input: ScoreInput): Promise<void> {
-  const { error } = await client
-    .from("scores")
-    .insert({ game: input.game, name: input.name, score: input.score });
+  const { error } = await withTimeout(
+    client.from("scores").insert({ game: input.game, name: input.name, score: input.score }),
+    SAVE_TIMEOUT_MS,
+  );
   throwOn(error);
 }
 

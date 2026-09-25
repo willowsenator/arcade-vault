@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   fetchGameStats,
   fetchOwnBest,
@@ -7,6 +7,7 @@ import {
   fetchTopScoresByGame,
   formatScoreDate,
   insertScore,
+  SAVE_TIMEOUT_MS,
 } from "./score-queries";
 import { fakeClient, type Query } from "./score-queries.testing";
 
@@ -32,6 +33,20 @@ describe("formatScoreDate", () => {
 });
 
 describe("insertScore", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("rejects when the insert never settles within the save timeout", async () => {
+    vi.useFakeTimers();
+    const client = {
+      from: () => ({ insert: () => new Promise<never>(() => {}) }),
+    } as unknown as Parameters<typeof insertScore>[0];
+    const assertion = expect(
+      insertScore(client, { game: "rocas", name: "ANA", score: 1 }),
+    ).rejects.toThrow(/timed out/i);
+    await vi.advanceTimersByTimeAsync(SAVE_TIMEOUT_MS);
+    await assertion;
+  });
+
   it("inserts the game, name and score", async () => {
     const { client, queries } = fakeClient(() => ({}));
     await insertScore(client, { game: "rocas", name: "ANA", score: 0 });

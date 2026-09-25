@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Game, ScoreRow } from "@/lib/data";
-import { SCORES_LOAD_ERROR } from "@/lib/messages";
+import { NO_SCORES_YET, SCORES_LOAD_ERROR } from "@/lib/messages";
 import type { GameStats } from "@/lib/score-queries";
 
 export default function GameDetailScreen({
@@ -75,7 +75,7 @@ export default function GameDetailScreen({
               {SCORES_LOAD_ERROR}
             </div>
           ) : topScores.length === 0 ? (
-            <div style={{ color: "var(--ink-faint)" }}>AÚN NO HAY PUNTUACIONES</div>
+            <div style={{ color: "var(--ink-faint)" }}>{NO_SCORES_YET}</div>
           ) : (
             topScores.map((row, index) => (
               <div

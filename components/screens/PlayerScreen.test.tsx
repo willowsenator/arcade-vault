@@ -34,7 +34,10 @@ describe("PlayerScreen", () => {
     supabase.insertScore.mockReset().mockResolvedValue(undefined);
     supabase.createClient.mockReset().mockReturnValue({ __browser: true });
   });
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
   it("increases the score on an interval while not paused", () => {
     render(
       <AuthProvider>
@@ -85,7 +88,6 @@ describe("PlayerScreen", () => {
     expect(screen.getByText("GUARDAR PUNTUACIÓN")).not.toHaveAttribute("aria-disabled", "true");
     expect(screen.getByPlaceholderText("TUS INICIALES")).toHaveFocus();
     expect(errorSpy).toHaveBeenCalledWith(expect.any(String), { game: GAMES[0].id }, failure);
-    errorSpy.mockRestore();
   });
   it("clears the error and confirms the score when a retry succeeds", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});

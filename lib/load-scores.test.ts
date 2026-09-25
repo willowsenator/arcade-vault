@@ -5,7 +5,7 @@ const cookiesMock = vi.hoisted(() => vi.fn());
 vi.mock("next/headers", () => ({ cookies: cookiesMock }));
 vi.mock("@/utils/supabase/server", () => ({ createClient: createClientMock }));
 
-const { withScores } = await import("./load-scores");
+const { withScores, LOAD_TIMEOUT_MS } = await import("./load-scores");
 
 describe("withScores", () => {
   let errorSpy: ReturnType<typeof vi.spyOn>;
@@ -55,5 +55,15 @@ describe("withScores", () => {
     createClientMock.mockReturnValue({});
     expect(await withScores(async () => { throw failure; })).toBeNull();
     expect(errorSpy).toHaveBeenCalledWith("Scores unavailable:", failure);
+  });
+
+  it("returns null and logs when the loader never settles within the load timeout", async () => {
+    vi.useFakeTimers();
+    createClientMock.mockReturnValue({});
+    const result = withScores(() => new Promise<never>(() => {}));
+    await vi.advanceTimersByTimeAsync(LOAD_TIMEOUT_MS);
+    expect(await result).toBeNull();
+    expect(errorSpy).toHaveBeenCalledWith("Scores unavailable:", expect.any(Error));
+    vi.useRealTimers();
   });
 });
