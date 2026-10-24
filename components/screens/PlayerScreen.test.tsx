@@ -13,10 +13,12 @@ const supabase = vi.hoisted(() => ({
 vi.mock("@/lib/score-queries", () => ({ insertScore: supabase.insertScore }));
 vi.mock("@/utils/supabase/client", () => ({ createClient: supabase.createClient }));
 
+const mockPlayerGame = GAMES.find((g) => !g.engine)!;
+
 const openGameOver = () => {
   render(
     <AuthProvider>
-      <PlayerScreen game={GAMES[0]} />
+      <PlayerScreen game={mockPlayerGame} />
     </AuthProvider>,
   );
   fireEvent.click(screen.getByText("FIN"));
@@ -41,7 +43,7 @@ describe("PlayerScreen", () => {
   it("increases the score on an interval while not paused", () => {
     render(
       <AuthProvider>
-        <PlayerScreen game={GAMES[0]} />
+        <PlayerScreen game={mockPlayerGame} />
       </AuthProvider>,
     );
     act(() => vi.advanceTimersByTime(220));
@@ -50,7 +52,7 @@ describe("PlayerScreen", () => {
   it("stops increasing the score while paused", () => {
     render(
       <AuthProvider>
-        <PlayerScreen game={GAMES[0]} />
+        <PlayerScreen game={mockPlayerGame} />
       </AuthProvider>,
     );
     fireEvent.click(screen.getByText("PAUSA"));
@@ -70,7 +72,7 @@ describe("PlayerScreen", () => {
     await save();
     expect(supabase.insertScore).toHaveBeenCalledWith(
       { __browser: true },
-      { game: GAMES[0].id, name: "INVITADO", score: 0 },
+      { game: mockPlayerGame.id, name: "INVITADO", score: 0 },
     );
     expect(screen.getByText("▸ PUNTUACIÓN GUARDADA_")).toBeInTheDocument();
     expect(localStorage.getItem("av_scores")).toBeNull();
@@ -87,7 +89,7 @@ describe("PlayerScreen", () => {
     expect(screen.queryByText("▸ PUNTUACIÓN GUARDADA_")).toBeNull();
     expect(screen.getByText("GUARDAR PUNTUACIÓN")).not.toHaveAttribute("aria-disabled", "true");
     expect(screen.getByPlaceholderText("TUS INICIALES")).toHaveFocus();
-    expect(errorSpy).toHaveBeenCalledWith(expect.any(String), { game: GAMES[0].id }, failure);
+    expect(errorSpy).toHaveBeenCalledWith(expect.any(String), { game: mockPlayerGame.id }, failure);
   });
   it("clears the error and confirms the score when a retry succeeds", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -187,7 +189,7 @@ describe("PlayerScreen", () => {
     localStorage.setItem("av_user", JSON.stringify({ name: "PX_KAI" }));
     const markup = renderToString(
       <AuthProvider>
-        <PlayerScreen game={GAMES[0]} />
+        <PlayerScreen game={mockPlayerGame} />
       </AuthProvider>,
     );
     const container = document.createElement("div");
@@ -196,7 +198,7 @@ describe("PlayerScreen", () => {
     const root = hydrateRoot(
       container,
       <AuthProvider>
-        <PlayerScreen game={GAMES[0]} />
+        <PlayerScreen game={mockPlayerGame} />
       </AuthProvider>,
     );
     await act(async () => {});

@@ -6,13 +6,13 @@ export type Game = {
   cat: string;
   cover: string;
   color: string;
-  engine?: "asteroids";
+  engine?: "asteroids" | "bloque-buster";
 };
 
 export type ScoreRow = { rank: number; name: string; score: number; date: string };
 
 export const GAMES: Game[] = [
-  { id: "bloque-buster", title: "BLOQUE BUSTER", short: "Rebota la pelota y destruye muros de neón.", long: "Pilota una nave-paleta y rebota un núcleo de plasma para pulverizar muros de bloques cromáticos. Cada nivel reorganiza la grilla en patrones imposibles. ¿Hasta dónde llegará tu racha?", cat: "ARCADE", cover: "cover-bricks", color: "cyan" },
+  { id: "bloque-buster", title: "BLOQUE BUSTER", short: "Rebota la pelota y destruye muros de neón.", long: "Pilota una nave-paleta y rebota un núcleo de plasma para pulverizar muros de bloques cromáticos. Cada muro despejado levanta otro, y cada vida perdida te cuesta puntos. ¿Hasta dónde llegará tu racha?", cat: "ARCADE", cover: "cover-bricks", color: "cyan", engine: "bloque-buster" },
   { id: "caida", title: "CAÍDA", short: "Encaja las piezas antes de que el techo te aplaste.", long: "Piezas geométricas descienden desde la oscuridad. Rótalas, encástralas y limpia líneas para sobrevivir. La velocidad aumenta sin piedad cada 10 líneas.", cat: "PUZZLE", cover: "cover-tetro", color: "magenta" },
   { id: "serpentina", title: "SERPENTINA", short: "Crece sin morder tu propia cola.", long: "Una serpiente de luz recorre la grilla buscando núcleos magenta. Cada bocado la alarga y la hace más veloz. Un movimiento en falso y se devora a sí misma.", cat: "ARCADE", cover: "cover-snake", color: "green" },
   { id: "gloton", title: "GLOTÓN", short: "Devora puntos y escapa de los fantasmas.", long: "Un círculo glotón patrulla un laberinto coleccionando puntos luminosos. Cuatro espectros lo persiguen, pero cada cierto tiempo aparece una píldora que invierte los papeles.", cat: "ARCADE", cover: "cover-glot", color: "yellow" },
