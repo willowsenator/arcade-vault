@@ -67,17 +67,18 @@ implementation plan, or commit.
    - a canvas component under `components/games/`, built like `AsteroidsCanvas` (animation
      frame loop, stats callback), with a test that mounts it, checks that the stats callback
      fires, and checks that the loop is cleaned up on unmount;
-   - `PlayerScreen` choosing the canvas component and stats shape by engine id, with no
-     hardcoded condition for this game, and the existing `rocas` tests still passing;
+   - the game's canvas, starting lives and Spanish controls hint registered in
+     `components/games/engines.ts` under the new engine id, with no game-specific condition in
+     `PlayerScreen`, and the existing `rocas` and `bloque-buster` tests still passing;
    - the new engine id added to the `Game.engine` union and set on the catalog entry;
    - a cover class in `app/globals.css` referenced by the catalog entry;
-   - a new migration under `supabase/migrations/` adding the game id to the scores
-     allow-list, plus a test that fails when the catalog ids and the allow-list diverge;
+   - the game id confirmed to be in the scores allow-list seed
+     (`supabase/migrations/20260924120000_scores.sql`; every catalog id is already seeded, and
+     `lib/migration.test.ts` "seeds exactly the catalog games" already fails when the catalog
+     and the allow-list diverge); only a brand-new catalog id needs a new migration adding it,
+     keeping that test green;
    - lint, tests and build passing;
    - the Architecture notes in the project `CLAUDE.md` naming the new game, with no counts.
-
-   Seed one Open Question in every spec until the user decides it: whether the scores
-   allow-list stays one migration per game or becomes a lookup table.
 8. Before saving, check the draft against the anti-placeholder rules: every acceptance
    criterion is testable and specific, the Problem names the actual trigger rather than
    restating the title, and every Non-Goal and Out of Scope entry says why it is excluded.
