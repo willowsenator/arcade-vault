@@ -7,14 +7,16 @@ import { useAuth } from "@/components/AuthProvider";
 import { NAME_REQUIRED_TO_SAVE, SAVE_SCORE_ERROR } from "@/lib/messages";
 import { insertScore } from "@/lib/score-queries";
 import { createClient } from "@/utils/supabase/client";
-import AsteroidsCanvas from "@/components/games/AsteroidsCanvas";
-import { START_LIVES, type Stats } from "@/lib/asteroids/game";
+import { ENGINES, type EngineStats } from "@/components/games/engines";
 
 export default function PlayerScreen({ game }: { game: Game }) {
   const { user } = useAuth();
-  const playable = game.engine === "asteroids";
+  const engine = game.engine ? ENGINES[game.engine] : null;
+  const playable = engine !== null;
+  // The fallback is the mock player's display value.
+  const startLives = engine?.startLives ?? 3;
   const [score, setScore] = useState(0);
-  const [lives, setLives] = useState(START_LIVES);
+  const [lives, setLives] = useState(startLives);
   const [gameLevel, setGameLevel] = useState(1);
   const [runId, setRunId] = useState(0);
   const level = playable ? gameLevel : Math.floor(score / 2500) + 1;
@@ -29,11 +31,28 @@ export default function PlayerScreen({ game }: { game: Game }) {
   const nameInputRef = useRef<HTMLInputElement>(null);
   const restartButtonRef = useRef<HTMLButtonElement>(null);
 
-  const handleStats = useCallback((stats: Stats) => {
+  const handleStats = useCallback((stats: EngineStats) => {
     setScore(stats.score);
     setLives(stats.lives);
     setGameLevel(stats.level);
   }, []);
+
+  useEffect(() => {
+    if (!playable || over) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.code !== "KeyP") return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target;
+      if (target instanceof HTMLElement && (
+        target.matches("input, textarea, select") || target.isContentEditable
+      )) return;
+      event.preventDefault();
+      if (event.repeat) return;
+      setPaused((value) => !value);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [playable, over]);
 
   useEffect(() => {
     if (playable || over || paused) return;
@@ -44,9 +63,9 @@ export default function PlayerScreen({ game }: { game: Game }) {
     return () => clearInterval(timer);
   }, [playable, over, paused]);
 
-  const restart = () => {
+  const restart = useCallback(() => {
     setScore(0);
-    setLives(START_LIVES);
+    setLives(startLives);
     setGameLevel(1);
     setRunId((id) => id + 1);
     setPaused(false);
@@ -55,7 +74,7 @@ export default function PlayerScreen({ game }: { game: Game }) {
     setSaveError(null);
     setSaving(false);
     saveRunRef.current += 1;
-  };
+  }, [startLives]);
 
   const save = async () => {
     if (saving) return;
@@ -90,7 +109,7 @@ export default function PlayerScreen({ game }: { game: Game }) {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [over, saved]);
+  }, [over, saved, restart]);
 
   return (
     <div className="av-player fade-in">
@@ -128,6 +147,7 @@ export default function PlayerScreen({ game }: { game: Game }) {
         <div className="hud-actions">
           <button
             className="btn yellow"
+            aria-keyshortcuts="P"
             onClick={() => setPaused((value) => !value)}
           >
             {paused ? "REANUDAR" : "PAUSA"}
@@ -142,8 +162,8 @@ export default function PlayerScreen({ game }: { game: Game }) {
       </div>
       <div className="crt">
         <div className="crt-screen">
-          {playable ? (
-            <AsteroidsCanvas
+          {engine ? (
+            <engine.Canvas
               key={runId}
               running={!paused && !over}
               onStats={handleStats}
@@ -161,6 +181,7 @@ export default function PlayerScreen({ game }: { game: Game }) {
           {paused && (
             <div
               className="crt-content"
+              role="status"
               style={{ background: "rgba(0,0,0,0.6)", zIndex: 5 }}
             >
               <div>
@@ -188,8 +209,8 @@ export default function PlayerScreen({ game }: { game: Game }) {
           <span>CARGA · 1MB</span>
         </div>
       </div>
-      {playable && (
-        <p className="controls-hint">← → ROTAR · ↑ IMPULSO · ESPACIO DISPARAR</p>
+      {engine && (
+        <p className="controls-hint">{engine.controlsHint}</p>
       )}
       {over && (
         <div className="modal-bd">

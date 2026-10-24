@@ -146,7 +146,7 @@ describe("PlayerScreen with the asteroids engine", () => {
   });
 
   it("keeps the mock player for games without an engine", () => {
-    const { container } = renderPlayer(GAMES[0]);
+    const { container } = renderPlayer(GAMES.find((g) => !g.engine)!);
     expect(screen.queryByTestId("asteroids-canvas")).toBeNull();
     expect(container.querySelector(".enemy")).not.toBeNull();
     expect(screen.getByTestId("lives-value").textContent).toBe("♥ ♥ ♥");

@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { GAMES, CATS } from "./data";
 
 describe("data", () => {
@@ -12,9 +14,19 @@ describe("data", () => {
     for (const g of GAMES) expect(CATS).toContain(g.cat);
   });
 
-  it("marks exactly one game as the asteroids engine, and it is rocas", () => {
-    const playable = GAMES.filter((g) => g.engine === "asteroids");
-    expect(playable.map((g) => g.id)).toEqual(["rocas"]);
+  it("engine ids are rocas → asteroids and bloque-buster → bloque-buster", () => {
+    expect(Object.fromEntries(GAMES.filter((g) => g.engine).map((g) => [g.id, g.engine]))).toEqual({
+      rocas: "asteroids",
+      "bloque-buster": "bloque-buster",
+    });
+  });
+
+  it("does not claim bloque-buster levels rearrange the wall", () => {
+    expect(GAMES.find((g) => g.id === "bloque-buster")!.long).not.toMatch(/patrones/i);
+  });
+
+  it("keeps the bricks cover rule", () => {
+    expect(readFileSync(path.resolve(import.meta.dirname, "../app/globals.css"), "utf8")).toMatch(/\.cover-bricks\s*\{/);
   });
 
   it("describes rocas by its real mechanics, not features the game lacks", () => {
