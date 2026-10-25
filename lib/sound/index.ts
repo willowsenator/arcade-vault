@@ -34,7 +34,7 @@ export function createSound(createContext: () => AudioContext | null) {
       const unlock = () => {
         cleanup();
         synth.unlock();
-        if (requestedLoop && soundEnabled()) synth.startMusic(requestedLoop);
+        if (requestedLoop && soundEnabled() && !synth.musicPlaying) synth.startMusic(requestedLoop);
       };
       window.addEventListener("keydown", unlock, { once: true });
       window.addEventListener("pointerdown", unlock, { once: true });

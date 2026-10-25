@@ -66,7 +66,39 @@ describe("sound facade (Task 3)", () => {
     sound.stopMusic();
   });
 
-  it.each(["keydown", "pointerdown"])("unlocks and restarts remembered music only on the first %s", async (event) => {
+  it("does not reschedule running music on the first key press", async () => {
+    const { createSound } = await import("./index");
+    const audio = fakeAudio();
+    const sound = createSound(audio.createContext);
+    sound.startMusic(loop);
+    const count = audio.tones.length;
+    const first = { ...audio.tones[0] };
+    const cleanup = sound.armGestureUnlock();
+    window.dispatchEvent(new Event("keydown"));
+    expect(audio.tones).toHaveLength(count);
+    expect(audio.tones[0]).toEqual(first);
+    cleanup();
+    sound.stopMusic();
+  });
+
+  it("starts remembered music when audio becomes available on the first press", async () => {
+    const { createSound } = await import("./index");
+    const audio = fakeAudio();
+    let calls = 0;
+    const sound = createSound(() => ++calls === 1 ? null : audio.createContext());
+    sound.startMusic(loop);
+    expect(calls).toBe(1);
+    expect(audio.tones).toHaveLength(0);
+    const cleanup = sound.armGestureUnlock();
+    window.dispatchEvent(new Event("keydown"));
+    expect(calls).toBe(2);
+    expect(audio.tones[0].freq).toBe(220);
+    expect(vi.getTimerCount()).toBe(1);
+    cleanup();
+    sound.stopMusic();
+  });
+
+  it.each(["keydown", "pointerdown"])("unlocks suspended music without restarting only on the first %s", async (event) => {
     const { createSound } = await import("./index");
     const audio = fakeAudio({ state: "suspended", resumable: false });
     const sound = createSound(audio.createContext);
@@ -76,13 +108,13 @@ describe("sound facade (Task 3)", () => {
     const cleanup = sound.armGestureUnlock();
     window.dispatchEvent(new Event(event));
     expect(audio.resumeCalls).toBeGreaterThan(before);
-    expect(audio.tones).toHaveLength(count + 1);
-    expect(audio.tones.at(-1)?.freq).toBe(220);
+    expect(audio.tones).toHaveLength(count);
+    expect(vi.getTimerCount()).toBe(1);
     const resumed = audio.resumeCalls;
     window.dispatchEvent(new Event("keydown"));
     window.dispatchEvent(new Event("pointerdown"));
     expect(audio.resumeCalls).toBe(resumed);
-    expect(audio.tones).toHaveLength(count + 1);
+    expect(audio.tones).toHaveLength(count);
     expect(vi.getTimerCount()).toBe(1);
     cleanup();
     sound.stopMusic();
