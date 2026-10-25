@@ -2,8 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { H, W } from "@/lib/asteroids/entities";
-import { AsteroidsGame, clampDt, type Stats } from "@/lib/asteroids/game";
+import { AsteroidsGame, clampDt, type AsteroidsEvent, type Stats } from "@/lib/asteroids/game";
 import { drawGame } from "@/lib/asteroids/render";
+import { sound, type Cue } from "@/lib/sound";
+import { ASTEROIDS_CUES } from "@/lib/sound/cues";
+
+const CUES = ASTEROIDS_CUES satisfies Record<AsteroidsEvent, Cue>;
 
 const GAME_KEYS = new Set([
   "ArrowLeft",
@@ -78,6 +82,7 @@ export default function AsteroidsCanvas({
         thrust: held.has("ArrowUp"),
         shoot,
       });
+      for (const event of game.events) sound.play(CUES[event]);
       shoot = false;
       drawGame(ctx, game);
       publishStats();

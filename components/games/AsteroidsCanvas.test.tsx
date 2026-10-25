@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render } from "@testing-library/react";
 import AsteroidsCanvas from "./AsteroidsCanvas";
+import { sound } from "@/lib/sound";
+import { ASTEROIDS_CUES } from "@/lib/sound/cues";
+
+vi.mock("@/lib/sound", () => ({ sound: { play: vi.fn() } }));
 import { Asteroid, H, W } from "@/lib/asteroids/entities";
 import { AsteroidsGame, MAX_DT } from "@/lib/asteroids/game";
 import { seeded, stubContext } from "@/lib/asteroids/testing";
@@ -40,6 +44,40 @@ const press = (type: "keydown" | "keyup", code: string, init: KeyboardEventInit 
 const props = () => ({ onStats: vi.fn(), onGameOver: vi.fn() });
 
 describe("AsteroidsCanvas", () => {
+  describe("sound cues", () => {
+    beforeEach(() => { vi.mocked(sound.play).mockClear(); });
+
+    it("plays every reported event in order", () => {
+      const game = new AsteroidsGame(seeded(1));
+      vi.spyOn(game, "update").mockImplementation(() => {
+        game.events = ["shot", "asteroid"];
+      });
+      render(<AsteroidsCanvas running createGame={() => game} {...props()} />);
+      step(0);
+      expect(sound.play).toHaveBeenCalledTimes(2);
+      expect(sound.play).toHaveBeenNthCalledWith(1, ASTEROIDS_CUES.shot);
+      expect(sound.play).toHaveBeenNthCalledWith(2, ASTEROIDS_CUES.asteroid);
+    });
+
+    it("plays nothing when the update reports no events", () => {
+      const game = new AsteroidsGame(seeded(1));
+      vi.spyOn(game, "update").mockImplementation(() => { game.events = []; });
+      render(<AsteroidsCanvas running createGame={() => game} {...props()} />);
+      step(0);
+      expect(sound.play).not.toHaveBeenCalled();
+    });
+
+    it("plays nothing while paused even with events from the previous frame", () => {
+      const game = new AsteroidsGame(seeded(1));
+      game.events = ["shot", "asteroid"];
+      const update = vi.spyOn(game, "update");
+      render(<AsteroidsCanvas running={false} createGame={() => game} {...props()} />);
+      step(0);
+      expect(update).not.toHaveBeenCalled();
+      expect(sound.play).not.toHaveBeenCalled();
+    });
+  });
+
   it("reports the starting stats on the first frame", () => {
     const p = props();
     render(<AsteroidsCanvas running {...p} />);
