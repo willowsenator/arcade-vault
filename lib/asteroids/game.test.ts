@@ -28,6 +28,62 @@ function gameWith(...rocks: Asteroid[]) {
 const rockOnShip = (size: AsteroidSize = 3) =>
   new Asteroid(seeded(4), W / 2, H / 2, size);
 
+describe("AsteroidsGame events", () => {
+  it.each([0, TRIPLE_TIME])("reports one shot with triple timer %s and none on cooldown", (triple) => {
+    const game = gameWith();
+    game.ship.tripleShot = triple;
+    game.update(TICK, { ...idle, shoot: true });
+    expect(game.bullets).toHaveLength(triple ? 3 : 1);
+    expect(game.events).toEqual(["shot"]);
+    game.update(TICK, { ...idle, shoot: true });
+    expect(game.events).toEqual([]);
+  });
+
+  it("reports each asteroid destroyed by bullets", () => {
+    const game = gameWith(
+      new Asteroid(seeded(5), 100, 100, 1),
+      new Asteroid(seeded(5), 200, 100, 1),
+    );
+    game.bullets = [new Bullet(100, 100, 0), new Bullet(200, 100, 0)];
+    game.update(TICK, idle);
+    expect(game.events).toEqual(["asteroid", "asteroid"]);
+  });
+
+  it("reports each asteroid destroyed by the shield", () => {
+    const game = gameWith(rockOnShip(), rockOnShip());
+    game.ship.shield = SHIELD_TIME;
+    game.update(TICK, idle);
+    expect(game.events).toEqual(["asteroid", "asteroid"]);
+  });
+
+  it.each([2, 1])("reports ship loss with %i lives before loss and clears on the next update", (lives) => {
+    const game = gameWith(rockOnShip());
+    game.lives = lives;
+    game.update(TICK, idle);
+    expect(game.events).toEqual([lives === 1 ? "lastLife" : "shipLost"]);
+    game.update(TICK, idle);
+    expect(game.events).toEqual([]);
+  });
+
+  it("reports every pickup", () => {
+    const game = gameWith();
+    game.powerups = [
+      new Powerup(seeded(6), W / 2, H / 2, "shield"),
+      new Powerup(seeded(6), W / 2, H / 2, "triple"),
+    ];
+    game.update(TICK, idle);
+    expect(game.events).toEqual(["powerup", "powerup"]);
+  });
+
+  it("reports the final asteroid before the level clear", () => {
+    const game = new AsteroidsGame(seeded(8));
+    game.asteroids = [new Asteroid(seeded(5), 100, 100, 1)];
+    game.bullets = [new Bullet(100, 100, 0)];
+    game.update(TICK, idle);
+    expect(game.events).toEqual(["asteroid", "levelUp"]);
+  });
+});
+
 describe("clampDt", () => {
   it("caps long stalls and rejects negative time", () => {
     expect(clampDt(5)).toBe(MAX_DT);
