@@ -67,9 +67,13 @@ implementation plan, or commit.
    - a canvas component under `components/games/`, built like `AsteroidsCanvas` (animation
      frame loop, stats callback), with a test that mounts it, checks that the stats callback
      fires, and checks that the loop is cleaned up on unmount;
-   - the game's canvas, starting lives and Spanish controls hint registered in
+   - the game's canvas, starting lives, Spanish controls hint and music loop registered in
      `components/games/engines.ts` under the new engine id, with no game-specific condition in
      `PlayerScreen`, and the existing `rocas` and `bloque-buster` tests still passing;
+   - the engine records each moment the player should hear in an `events` array (no audio
+     code in `lib/<game>/`), the spec lists each moment's cue (waveform, frequency or sweep,
+     duration and peak gain, in the style of `lib/sound/cues.ts`) and the game's music loop,
+     and the canvas plays each event through `sound.play`;
    - the new engine id added to the `Game.engine` union and set on the catalog entry;
    - a cover class in `app/globals.css` referenced by the catalog entry;
    - the game id confirmed to be in the scores allow-list seed
