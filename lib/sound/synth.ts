@@ -48,9 +48,17 @@ export class Synth {
       for (const voice of this.effects) {
         if (voice.stop <= now) this.effects.delete(voice);
       }
-      const sounding = [...this.effects].filter((voice) => voice.start <= now).length;
-      if (sounding >= MAX_VOICES) return;
-      for (const tone of cue) this.schedule(tone, now + (tone.delay ?? 0), this.effects);
+      const pending = cue.map((tone) => {
+        const start = now + (tone.delay ?? 0);
+        return { tone, start, stop: start + tone.duration };
+      });
+      const voices = [...this.effects, ...pending];
+      // Existing delayed voices can also raise the count while a new tone sounds.
+      const exceedsCap = voices.some(({ start }) =>
+        voices.filter((voice) => voice.start <= start && start < voice.stop).length > MAX_VOICES,
+      );
+      if (exceedsCap) return;
+      for (const { tone, start } of pending) this.schedule(tone, start, this.effects);
     });
   }
 

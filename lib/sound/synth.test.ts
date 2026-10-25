@@ -50,6 +50,42 @@ describe("effect synth (Task 1)", () => {
     expect(audio.tones).toHaveLength(10);
   });
 
+  it("drops the whole two-tone cue when seven effects are sounding", () => {
+    const audio = fakeAudio();
+    const synth = new Synth(audio.createContext);
+    synth.play(Array.from({ length: 7 }, () => tone));
+    expect(audio.tones).toHaveLength(7);
+    synth.play([tone, tone]);
+    expect(audio.tones).toHaveLength(7);
+  });
+
+  it("allows one more tone when seven effects are sounding", () => {
+    const audio = fakeAudio();
+    const synth = new Synth(audio.createContext);
+    synth.play(Array.from({ length: 7 }, () => tone));
+    synth.play([tone]);
+    expect(audio.tones).toHaveLength(8);
+    expect(audio.tones[7]).toMatchObject({ start: 0, stop: 0.08 });
+  });
+
+  it("allows a sequential cue when earlier effects end before its later tone", () => {
+    const audio = fakeAudio();
+    const synth = new Synth(audio.createContext);
+    synth.play(Array.from({ length: 7 }, () => tone));
+    synth.play([{ ...tone, duration: 0.2 }, { ...tone, duration: 0.2, delay: 0.25 }]);
+    expect(audio.tones).toHaveLength(9);
+    expect(audio.tones.slice(7)).toMatchObject([{ start: 0, stop: 0.2 }, { start: 0.25, stop: 0.45 }]);
+  });
+
+  it("rejects a tone that would overlap eight previously scheduled delayed effects", () => {
+    const audio = fakeAudio();
+    const synth = new Synth(audio.createContext);
+    synth.play(Array.from({ length: 8 }, () => ({ ...tone, delay: 0.25, duration: 0.3 })));
+    expect(audio.tones).toHaveLength(8);
+    synth.play([{ ...tone, duration: 0.5 }]);
+    expect(audio.tones).toHaveLength(8);
+  });
+
   it("cancels future effects while leaving started effects alone", () => {
     const audio = fakeAudio();
     const synth = new Synth(audio.createContext);
