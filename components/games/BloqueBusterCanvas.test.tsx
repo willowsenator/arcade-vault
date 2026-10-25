@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen } from "@testing-library/react";
 import BloqueBusterCanvas from "./BloqueBusterCanvas";
+import { sound } from "@/lib/sound";
+import { BLOQUE_BUSTER_CUES } from "@/lib/sound/cues";
+
+vi.mock("@/lib/sound", () => ({ sound: { play: vi.fn() } }));
 import { BloqueBusterGame, MAX_DT } from "@/lib/bloque-buster/game";
 import { seeded, stubContext } from "@/lib/bloque-buster/testing";
 
@@ -34,6 +38,40 @@ const pointer = (canvas: HTMLElement, clientX: number) =>
 const props = () => ({ onStats: vi.fn(), onGameOver: vi.fn() });
 
 describe("BloqueBusterCanvas", () => {
+  describe("sound cues", () => {
+    beforeEach(() => { vi.mocked(sound.play).mockClear(); });
+
+    it("plays every reported event in order", () => {
+      const game = new BloqueBusterGame(seeded(1));
+      vi.spyOn(game, "update").mockImplementation(() => {
+        game.events = ["brick", "paddle"];
+      });
+      render(<BloqueBusterCanvas running createGame={() => game} {...props()} />);
+      step(0);
+      expect(sound.play).toHaveBeenCalledTimes(2);
+      expect(sound.play).toHaveBeenNthCalledWith(1, BLOQUE_BUSTER_CUES.brick);
+      expect(sound.play).toHaveBeenNthCalledWith(2, BLOQUE_BUSTER_CUES.paddle);
+    });
+
+    it("plays nothing when the update reports no events", () => {
+      const game = new BloqueBusterGame(seeded(1));
+      vi.spyOn(game, "update").mockImplementation(() => { game.events = []; });
+      render(<BloqueBusterCanvas running createGame={() => game} {...props()} />);
+      step(0);
+      expect(sound.play).not.toHaveBeenCalled();
+    });
+
+    it("plays nothing while paused even with events from the previous frame", () => {
+      const game = new BloqueBusterGame(seeded(1));
+      game.events = ["brick", "paddle"];
+      const update = vi.spyOn(game, "update");
+      render(<BloqueBusterCanvas running={false} createGame={() => game} {...props()} />);
+      step(0);
+      expect(update).not.toHaveBeenCalled();
+      expect(sound.play).not.toHaveBeenCalled();
+    });
+  });
+
   it("reports starting stats on the first frame and exposes the Spanish label", () => {
     const p = props();
     render(<BloqueBusterCanvas running {...p} />);

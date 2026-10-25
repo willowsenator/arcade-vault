@@ -8,10 +8,12 @@ import { NAME_REQUIRED_TO_SAVE, SAVE_SCORE_ERROR } from "@/lib/messages";
 import { insertScore } from "@/lib/score-queries";
 import { createClient } from "@/utils/supabase/client";
 import { ENGINES, type EngineStats } from "@/components/games/engines";
+import { sound, useSoundEnabled, setSoundEnabled } from "@/lib/sound";
 
 export default function PlayerScreen({ game }: { game: Game }) {
   const { user } = useAuth();
   const engine = game.engine ? ENGINES[game.engine] : null;
+  const enabled = useSoundEnabled();
   const playable = engine !== null;
   // The fallback is the mock player's display value.
   const startLives = engine?.startLives ?? 3;
@@ -21,6 +23,7 @@ export default function PlayerScreen({ game }: { game: Game }) {
   const [runId, setRunId] = useState(0);
   const level = playable ? gameLevel : Math.floor(score / 2500) + 1;
   const [paused, setPaused] = useState(false);
+  const [hidden, setHidden] = useState(() => typeof document !== "undefined" && document.hidden);
   const [over, setOver] = useState(false);
   const [nameOverride, setNameOverride] = useState<string | null>(null);
   const name = nameOverride ?? user?.name ?? "INVITADO";
@@ -30,6 +33,26 @@ export default function PlayerScreen({ game }: { game: Game }) {
   const saveRunRef = useRef(0);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const restartButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const cleanup = sound.armGestureUnlock();
+    return () => {
+      cleanup();
+      sound.cancelPending();
+    };
+  }, []);
+
+  useEffect(() => {
+    const onVisibilityChange = () => setHidden(document.hidden);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []);
+
+  useEffect(() => {
+    if (engine && !paused && !over && !hidden) sound.startMusic(engine.music);
+    else sound.stopMusic();
+    return () => sound.stopMusic();
+  }, [engine, paused, over, runId, hidden]);
 
   const handleStats = useCallback((stats: EngineStats) => {
     setScore(stats.score);
@@ -64,6 +87,7 @@ export default function PlayerScreen({ game }: { game: Game }) {
   }, [playable, over, paused]);
 
   const restart = useCallback(() => {
+    sound.cancelPending();
     setScore(0);
     setLives(startLives);
     setGameLevel(1);
@@ -158,6 +182,15 @@ export default function PlayerScreen({ game }: { game: Game }) {
           <Link href={`/games/${game.id}`} className="btn ghost">
             SALIR
           </Link>
+          {engine && (
+            <button
+              className="btn ghost"
+              aria-pressed={enabled}
+              onClick={() => setSoundEnabled(!enabled)}
+            >
+              SONIDO<span aria-hidden="true">{enabled ? ": SÍ" : ": NO"}</span>
+            </button>
+          )}
         </div>
       </div>
       <div className="crt">

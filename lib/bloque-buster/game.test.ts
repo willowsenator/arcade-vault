@@ -7,6 +7,54 @@ import { ballAt, seeded } from "./testing";
 const idle = { left: false, right: false };
 const right = { left: false, right: true };
 
+describe("BloqueBusterGame events", () => {
+  it("reports a brick hit and clears it on the next quiet update", () => {
+    const game = new BloqueBusterGame(seeded(1));
+    const brick = game.bricks[0];
+    game.ball = ballAt(brick.x + 34, brick.y + 25, 0, -240);
+    game.update(0, idle);
+    expect(game.events).toEqual(["brick"]);
+    game.ball = ballAt(320, 300, 0, -240);
+    game.update(0, idle);
+    expect(game.events).toEqual([]);
+  });
+
+  it("reports a paddle bounce", () => {
+    const game = new BloqueBusterGame(seeded(1));
+    game.ball = ballAt(game.paddle.x + 40, 450, 0, 240);
+    game.update(0, idle);
+    expect(game.events).toEqual(["paddle"]);
+  });
+
+  it.each([2, 1])("reports life loss with %i lives remaining before loss", (lives) => {
+    const game = new BloqueBusterGame(seeded(1));
+    game.lives = lives;
+    loseLife(game);
+    expect(game.events).toEqual([lives === 1 ? "lastLife" : "lifeLost"]);
+  });
+
+  it("clears the last-life event during breaking and gameover", () => {
+    const game = new BloqueBusterGame(seeded(1));
+    game.lives = 1;
+    loseLife(game);
+    expect(game.events).toEqual(["lastLife"]);
+    game.update(0, idle);
+    expect(game.events).toEqual([]);
+    game.update(BREAK_TIME, idle);
+    game.events = ["lastLife"];
+    game.update(0, idle);
+    expect(game.events).toEqual([]);
+  });
+
+  it("reports the final brick before the level clear", () => {
+    const game = new BloqueBusterGame(seeded(1));
+    game.bricks.forEach((brick, i) => { brick.destroyed = i !== 31; });
+    game.ball = ballAt(586, 149, 0, -240);
+    game.update(0, idle);
+    expect(game.events).toEqual(["brick", "levelUp"]);
+  });
+});
+
 function loseLife(game: BloqueBusterGame) {
   game.ball = ballAt(100, 461, 0, 240);
   game.update(0, idle);

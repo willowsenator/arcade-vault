@@ -16,10 +16,12 @@ const FRAGMENT_RISE_VELOCITY = -100;
 const FRAGMENT_COUNT = 4;
 
 export type GameState = "playing" | "breaking" | "gameover";
+export type BloqueBusterEvent = "brick" | "paddle" | "lifeLost" | "lastLife" | "levelUp";
 export type Stats = { score: number; lives: number; level: number };
 export type Fragment = Rect & { vx: number; vy: number };
 
 export class BloqueBusterGame {
+  events: BloqueBusterEvent[] = [];
   paddle = new Paddle();
   ball = new Ball();
   bricks = createWall();
@@ -47,6 +49,7 @@ export class BloqueBusterGame {
   }
 
   update(dt: number, input: Input) {
+    this.events = [];
     if (this.state === "gameover") return;
     if (this.state === "breaking") {
       this.updateBreaking(dt);
@@ -64,12 +67,14 @@ export class BloqueBusterGame {
     // Bounce downward motion or side contact swept into by the paddle, but not a ball already leaving upward.
     const entersPaddle = this.ball.vy >= 0 || this.ball.y > this.paddle.y - this.ball.radius;
     if (entersPaddle && circleRectHit(this.ball, this.paddle)) {
+      this.events.push("paddle");
       Object.assign(this.ball, paddleBounce(this.ball.x, this.paddle, BALL_SPEED));
       this.ball.y = this.paddle.y - this.ball.radius;
     }
 
     this.hitBrick();
     if (this.bricks.every((brick) => brick.destroyed)) {
+      this.events.push("levelUp");
       this.level++;
       this.bricks = createWall();
       this.ball.launchFrom(this.paddle);
@@ -82,6 +87,7 @@ export class BloqueBusterGame {
       const side = circleRectHit(this.ball, brick);
       if (!side) continue;
       brick.destroyed = true;
+      this.events.push("brick");
       this.score += ROW_POINTS[brick.row];
       Object.assign(this.ball, reflect(this.ball.vx, this.ball.vy, side));
       break;
@@ -92,6 +98,7 @@ export class BloqueBusterGame {
     this.score = Math.max(0, this.score - this.lifePenalty());
     this.livesLost++;
     this.lives--;
+    this.events.push(this.lives > 0 ? "lifeLost" : "lastLife");
     if (this.lives > 0) {
       this.ball.launchFrom(this.paddle);
     } else {

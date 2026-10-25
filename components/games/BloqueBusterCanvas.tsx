@@ -2,8 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { H, W } from "@/lib/bloque-buster/entities";
-import { BloqueBusterGame, clampDt, type Stats } from "@/lib/bloque-buster/game";
+import { BloqueBusterGame, clampDt, type BloqueBusterEvent, type Stats } from "@/lib/bloque-buster/game";
 import { drawGame } from "@/lib/bloque-buster/render";
+import { sound, type Cue } from "@/lib/sound";
+import { BLOQUE_BUSTER_CUES } from "@/lib/sound/cues";
+
+const CUES = BLOQUE_BUSTER_CUES satisfies Record<BloqueBusterEvent, Cue>;
 
 const GAME_KEYS = new Set(["ArrowLeft", "ArrowRight", "KeyA", "KeyD"]);
 
@@ -75,6 +79,7 @@ export default function BloqueBusterCanvas({
         left: held.has("ArrowLeft") || held.has("KeyA"),
         right: held.has("ArrowRight") || held.has("KeyD"),
       });
+      for (const event of game.events) sound.play(CUES[event]);
       drawGame(ctx, game);
       publishStats();
       if (game.state === "gameover") {

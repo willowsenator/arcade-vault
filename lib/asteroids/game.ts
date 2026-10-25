@@ -25,9 +25,11 @@ export const START_LIVES = 3;
 export const clampDt = (seconds: number) => Math.min(Math.max(seconds, 0), MAX_DT);
 
 export type GameState = "playing" | "dead" | "gameover";
+export type AsteroidsEvent = "shot" | "asteroid" | "shipLost" | "lastLife" | "powerup" | "levelUp";
 export type Stats = { score: number; lives: number; level: number };
 
 export class AsteroidsGame {
+  events: AsteroidsEvent[] = [];
   ship = new Ship();
   bullets: Bullet[] = [];
   asteroids: Asteroid[] = [];
@@ -60,6 +62,7 @@ export class AsteroidsGame {
   }
 
   update(dt: number, input: Input) {
+    this.events = [];
     if (this.state === "gameover") {
       this.tickParticles(dt);
       return;
@@ -70,7 +73,11 @@ export class AsteroidsGame {
       return;
     }
 
-    if (input.shoot) this.bullets.push(...this.ship.tryShoot());
+    if (input.shoot) {
+      const shots = this.ship.tryShoot();
+      if (shots.length > 0) this.events.push("shot");
+      this.bullets.push(...shots);
+    }
 
     this.ship.update(dt, input);
     this.bullets.forEach((b) => b.update(dt));
@@ -104,6 +111,7 @@ export class AsteroidsGame {
   }
 
   private nextLevel() {
+    this.events.push("levelUp");
     this.level++;
     this.bullets = [];
     this.particles = [];
@@ -136,6 +144,7 @@ export class AsteroidsGame {
   // Scores, explodes and splits an asteroid. Shared by the bullet and the shield,
   // which differ only in whether they roll for a power-up drop.
   private destroyAsteroid(asteroid: Asteroid, fragments: Asteroid[]) {
+    this.events.push("asteroid");
     asteroid.dead = true;
     this.score += POINTS[asteroid.size];
     this.explode(asteroid.x, asteroid.y, asteroid.size * 5);
@@ -146,6 +155,7 @@ export class AsteroidsGame {
     this.explode(this.ship.x, this.ship.y, 14);
     this.ship.dead = true;
     this.lives--;
+    this.events.push(this.lives > 0 ? "shipLost" : "lastLife");
     if (this.lives <= 0) {
       this.state = "gameover";
     } else {
@@ -194,6 +204,7 @@ export class AsteroidsGame {
     if (this.ship.dead) return;
     for (const p of this.powerups) {
       if (!p.dead && dist(this.ship, p) < this.ship.radius + p.radius) {
+        this.events.push("powerup");
         p.dead = true;
         if (p.type === "shield") this.ship.shield = SHIELD_TIME;
         else this.ship.tripleShot = TRIPLE_TIME;
