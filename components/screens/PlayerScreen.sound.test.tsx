@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import PlayerScreen from "./PlayerScreen";
 import { AuthProvider } from "@/components/AuthProvider";
@@ -57,13 +57,76 @@ const renderPlayer = (id = "bloque-buster") => render(
   </AuthProvider>,
 );
 
+const originalHidden = Object.getOwnPropertyDescriptor(document, "hidden");
+const setHidden = (value: boolean) => {
+  Object.defineProperty(document, "hidden", { configurable: true, get: () => value });
+};
+const changeVisibility = (hidden: boolean) => {
+  setHidden(hidden);
+  fireEvent(document, new Event("visibilitychange"));
+};
+
 beforeEach(() => {
+  setHidden(false);
   localStorage.clear();
   setSoundEnabled(true);
   vi.clearAllMocks();
 });
 
+afterEach(() => {
+  if (originalHidden) Object.defineProperty(document, "hidden", originalHidden);
+  else Reflect.deleteProperty(document, "hidden");
+  vi.restoreAllMocks();
+});
+
 describe("PlayerScreen sound lifecycle", () => {
+  it("stops music while hidden and restarts it when visible without pausing the game", () => {
+    renderPlayer();
+    vi.mocked(sound.stopMusic).mockClear();
+    changeVisibility(true);
+    expect(sound.stopMusic).toHaveBeenCalled();
+    expect(sound.startMusic).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "PAUSA" })).toBeInTheDocument();
+    expect(screen.getByTestId("bloque-buster-canvas")).toHaveAttribute("data-running", "true");
+    changeVisibility(false);
+    expect(sound.startMusic).toHaveBeenCalledTimes(2);
+    expect(sound.startMusic).toHaveBeenLastCalledWith(BLOQUE_BUSTER_MUSIC);
+  });
+
+  it("keeps music stopped after hiding and showing a paused game until resume", () => {
+    renderPlayer();
+    fireEvent.click(screen.getByRole("button", { name: "PAUSA" }));
+    vi.mocked(sound.startMusic).mockClear();
+    changeVisibility(true);
+    changeVisibility(false);
+    expect(sound.startMusic).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "REANUDAR" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "REANUDAR" }));
+    expect(sound.startMusic).toHaveBeenCalledExactlyOnceWith(BLOQUE_BUSTER_MUSIC);
+  });
+
+  it("waits for visibility before starting music when mounted hidden", () => {
+    setHidden(true);
+    renderPlayer();
+    expect(sound.startMusic).not.toHaveBeenCalled();
+    changeVisibility(false);
+    expect(sound.startMusic).toHaveBeenCalledExactlyOnceWith(BLOQUE_BUSTER_MUSIC);
+  });
+
+  it("removes its document visibility listener on unmount", () => {
+    const addListener = vi.spyOn(document, "addEventListener");
+    const removeListener = vi.spyOn(document, "removeEventListener");
+    const { unmount } = renderPlayer();
+    const listener = addListener.mock.calls.find(([event]) => event === "visibilitychange")?.[1];
+    expect(listener).toBeDefined();
+    changeVisibility(true);
+    unmount();
+    expect(removeListener).toHaveBeenCalledWith("visibilitychange", listener);
+    vi.mocked(sound.startMusic).mockClear();
+    changeVisibility(false);
+    expect(sound.startMusic).not.toHaveBeenCalled();
+  });
+
   it.each([
     ["bloque-buster", BLOQUE_BUSTER_MUSIC],
     ["rocas", ASTEROIDS_MUSIC],

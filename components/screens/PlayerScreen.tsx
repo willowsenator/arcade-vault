@@ -23,6 +23,7 @@ export default function PlayerScreen({ game }: { game: Game }) {
   const [runId, setRunId] = useState(0);
   const level = playable ? gameLevel : Math.floor(score / 2500) + 1;
   const [paused, setPaused] = useState(false);
+  const [hidden, setHidden] = useState(() => typeof document !== "undefined" && document.hidden);
   const [over, setOver] = useState(false);
   const [nameOverride, setNameOverride] = useState<string | null>(null);
   const name = nameOverride ?? user?.name ?? "INVITADO";
@@ -42,10 +43,16 @@ export default function PlayerScreen({ game }: { game: Game }) {
   }, []);
 
   useEffect(() => {
-    if (engine && !paused && !over) sound.startMusic(engine.music);
+    const onVisibilityChange = () => setHidden(document.hidden);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []);
+
+  useEffect(() => {
+    if (engine && !paused && !over && !hidden) sound.startMusic(engine.music);
     else sound.stopMusic();
     return () => sound.stopMusic();
-  }, [engine, paused, over, runId]);
+  }, [engine, paused, over, runId, hidden]);
 
   const handleStats = useCallback((stats: EngineStats) => {
     setScore(stats.score);
