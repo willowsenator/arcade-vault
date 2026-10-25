@@ -181,7 +181,7 @@ export default function PlayerScreen({ game }: { game: Game }) {
               aria-pressed={enabled}
               onClick={() => setSoundEnabled(!enabled)}
             >
-              {enabled ? "SONIDO: SÍ" : "SONIDO: NO"}
+              SONIDO<span aria-hidden="true">{enabled ? ": SÍ" : ": NO"}</span>
             </button>
           )}
         </div>

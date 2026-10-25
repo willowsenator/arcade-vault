@@ -132,14 +132,19 @@ describe("PlayerScreen sound lifecycle", () => {
 
   it("renders the sound switch after SALIR and updates its enabled state", () => {
     renderPlayer();
-    const button = screen.getByRole("button", { name: "SONIDO: SÍ" });
+    const button = screen.getByRole("button", { name: "SONIDO" });
     expect(button).toHaveAttribute("aria-pressed", "true");
+    expect(button).toHaveTextContent("SONIDO: SÍ");
+    expect(screen.queryByRole("button", { name: "SONIDO: SÍ" })).toBeNull();
+    expect(button).not.toHaveAttribute("aria-label");
     expect(button).toHaveClass("btn", "ghost");
     expect(screen.getByRole("link", { name: "SALIR" }).nextElementSibling).toBe(button);
     expect(button.parentElement).toHaveClass("hud-actions");
     fireEvent.click(button);
     expect(setSoundEnabled).toHaveBeenCalledExactlyOnceWith(false);
-    expect(screen.getByRole("button", { name: "SONIDO: NO" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "SONIDO" })).toHaveAttribute("aria-pressed", "false");
+    expect(button).toHaveTextContent("SONIDO: NO");
+    expect(screen.queryByRole("button", { name: "SONIDO: NO" })).toBeNull();
     fireEvent.click(button);
     expect(setSoundEnabled).toHaveBeenLastCalledWith(true);
     expect(button).toHaveTextContent("SONIDO: SÍ");
@@ -147,7 +152,7 @@ describe("PlayerScreen sound lifecycle", () => {
 
   it("shows no switch and starts no music for a game without an engine", () => {
     renderPlayer("caida");
-    expect(screen.queryByRole("button", { name: /SONIDO:/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: "SONIDO" })).toBeNull();
     expect(sound.startMusic).not.toHaveBeenCalled();
   });
 });
