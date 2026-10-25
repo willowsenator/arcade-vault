@@ -5,6 +5,12 @@ import BloqueBusterCanvas from "./BloqueBusterCanvas";
 import { ENGINES } from "./engines";
 
 describe("engine registry", () => {
+  it("provides music with at least one note for every engine", () => {
+    for (const engine of Object.values(ENGINES)) {
+      expect(engine.music.notes.length).toBeGreaterThan(0);
+    }
+  });
+
   it("registers every catalog engine with three lives and a controls hint", () => {
     const playable = GAMES.filter((game) => game.engine);
     expect(new Set(Object.keys(ENGINES))).toEqual(new Set(playable.map((game) => game.engine)));
