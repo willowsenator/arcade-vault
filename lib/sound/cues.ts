@@ -50,3 +50,20 @@ export const ASTEROIDS_MUSIC: MusicLoop = {
 export const SNAKE_MUSIC: MusicLoop = {
   notes: [196, 246.94, 293.66, 246.94], step: 0.3, noteDuration: 0.27, type: "triangle", gain: 0.08,
 };
+
+export const TETRIS_CUES = {
+  rotate: [{ freq: 520, type: "square", duration: 0.03, gain: 0.08 }],
+  lock: [{ freq: 120, type: "square", duration: 0.05, gain: 0.1 }],
+  lines: [660, 880].map((freq, index) => ({
+    freq, type: "square", duration: 0.06, gain: 0.12, delay: index * 0.06,
+  })),
+  tetris: [523.25, 659.25, 783.99, 1046.5].map((freq, index) => ({
+    freq, type: "square", duration: 0.08, gain: 0.12, delay: index * 0.08,
+  })),
+  levelUp,
+  gameOver: gameOver([0, 0.18, 0.36]),
+} satisfies Record<string, Cue>;
+
+export const TETRIS_MUSIC: MusicLoop = {
+  notes: [329.63, 246.94, 261.63, 293.66], step: 0.3, noteDuration: 0.27, type: "triangle", gain: 0.08,
+};
