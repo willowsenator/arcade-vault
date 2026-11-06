@@ -55,8 +55,9 @@ export default function SnakeCanvas({
 
     const onKeyDown = (event: KeyboardEvent) => {
       const direction = KEY_DIRECTIONS[event.code];
-      if (!direction) return;
+      if (!direction || event.ctrlKey || event.metaKey || event.altKey) return;
       event.preventDefault();
+      if (event.repeat) return;
       game.steer(direction);
     };
 

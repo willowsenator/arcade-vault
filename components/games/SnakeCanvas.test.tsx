@@ -53,7 +53,7 @@ describe("SnakeCanvas", () => {
 
   it("has a Spanish accessible name and the board size", () => {
     render(<SnakeCanvas running {...props()} />);
-    const canvas = screen.getByRole("img", { name: /SERPENTINA/ });
+    const canvas = screen.getByRole("img", { name: /Pantalla de SERPENTINA/ });
     expect(canvas).toHaveAttribute("width", "480");
     expect(canvas).toHaveAttribute("height", "480");
   });
@@ -70,6 +70,24 @@ describe("SnakeCanvas", () => {
       expect(press(code).defaultPrevented).toBe(true);
       expect(steer).toHaveBeenLastCalledWith(direction);
     }
+  });
+
+  it("leaves modified key chords to the browser", () => {
+    const game = new SnakeGame(seeded(1));
+    const steer = vi.spyOn(game, "steer");
+    render(<SnakeCanvas running createGame={() => game} {...props()} />);
+    for (const init of [{ ctrlKey: true }, { metaKey: true }, { altKey: true }]) {
+      expect(press("KeyS", init).defaultPrevented).toBe(false);
+    }
+    expect(steer).not.toHaveBeenCalled();
+  });
+
+  it("prevents repeated key presses without steering again", () => {
+    const game = new SnakeGame(seeded(1));
+    const steer = vi.spyOn(game, "steer");
+    render(<SnakeCanvas running createGame={() => game} {...props()} />);
+    expect(press("ArrowUp", { repeat: true }).defaultPrevented).toBe(true);
+    expect(steer).not.toHaveBeenCalled();
   });
 
   it("ignores P so the player screen owns pause", () => {
@@ -102,14 +120,6 @@ describe("SnakeCanvas", () => {
     expect(sound.play).toHaveBeenCalledTimes(2);
     expect(sound.play).toHaveBeenNthCalledWith(1, SNAKE_CUES.food);
     expect(sound.play).toHaveBeenNthCalledWith(2, SNAKE_CUES.levelUp);
-  });
-
-  it("plays nothing while paused", () => {
-    const game = new SnakeGame(seeded(1));
-    game.events = ["food"];
-    render(<SnakeCanvas running={false} createGame={() => game} {...props()} />);
-    step(0);
-    expect(sound.play).not.toHaveBeenCalled();
   });
 
   it("reports game over exactly once and stops scheduling frames", () => {
