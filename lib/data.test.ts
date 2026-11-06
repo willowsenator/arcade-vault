@@ -14,11 +14,12 @@ describe("data", () => {
     for (const g of GAMES) expect(CATS).toContain(g.cat);
   });
 
-  it("engine ids are rocas → asteroids, bloque-buster → bloque-buster and serpentina → snake", () => {
+  it("engine ids map rocas, bloque-buster, serpentina and caida to their engines", () => {
     expect(Object.fromEntries(GAMES.filter((g) => g.engine).map((g) => [g.id, g.engine]))).toEqual({
       rocas: "asteroids",
       "bloque-buster": "bloque-buster",
       serpentina: "snake",
+      caida: "tetris",
     });
   });
 

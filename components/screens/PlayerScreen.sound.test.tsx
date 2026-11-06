@@ -215,7 +215,7 @@ describe("PlayerScreen sound lifecycle", () => {
   });
 
   it("shows no switch and starts no music for a game without an engine", () => {
-    renderPlayer("caida");
+    renderPlayer("serpentina");
     expect(screen.queryByRole("button", { name: "SONIDO" })).toBeNull();
     expect(sound.startMusic).not.toHaveBeenCalled();
   });

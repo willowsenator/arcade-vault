@@ -109,7 +109,7 @@ describe("PlayerScreen with the bloque-buster engine", () => {
   });
 
   it("does not toggle pause for games without an engine", () => {
-    renderPlayer("caida");
+    renderPlayer("serpentina");
     fireEvent.keyDown(window, { code: "KeyP" });
     expect(screen.queryByText("EN PAUSA")).toBeNull();
   });
