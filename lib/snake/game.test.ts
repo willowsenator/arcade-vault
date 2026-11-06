@@ -23,6 +23,16 @@ function straight(head: Cell, direction: Direction, length = 3): Cell[] {
   return Array.from({ length }, (_, i) => ({ x: head.x + dx * i, y: head.y + dy * i }));
 }
 
+/** Deep copy of every own field, private ones included; functions are kept by reference. */
+function snapshot(game: SnakeGame): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(game).map(([key, value]) => [
+      key,
+      typeof value === "function" ? value : structuredClone(value),
+    ]),
+  );
+}
+
 const FAR_FOOD: Cell = { x: 0, y: 0 };
 
 describe("SnakeGame start", () => {
@@ -194,6 +204,26 @@ describe("SnakeGame update", () => {
     const game = newGame();
     game.update(stepInterval(1) * 2.5);
     expect(game.snake[0]).toEqual({ x: COLS / 2 + 2, y: ROWS / 2 });
+  });
+
+  it("stops stepping at game over inside a multi-step update", () => {
+    const game = newGame();
+    place(game, straight({ x: COLS - 1, y: 5 }, "right"), "right", FAR_FOOD);
+    const snake = game.snake.map((c) => ({ ...c }));
+    game.update(stepInterval(1) * 5);
+    expect(game.events).toEqual(["gameOver"]);
+    expect(game.snake).toEqual(snake);
+  });
+
+  it("leaves every field untouched by steer and update after game over", () => {
+    const game = newGame();
+    place(game, straight({ x: COLS - 1, y: 5 }, "right"), "right", FAR_FOOD);
+    step(game);
+    game.update(0);
+    const before = snapshot(game);
+    game.steer("up");
+    game.update(1);
+    expect(game).toEqual(before);
   });
 
   it("clears events first", () => {
