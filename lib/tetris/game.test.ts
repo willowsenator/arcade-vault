@@ -160,6 +160,21 @@ describe("Tetris game rules", () => {
     expect(game.events).toEqual(["lock"]);
   });
 
+  it.each([
+    ["hard drop", { ...idle, hardDrop: true }],
+    ["soft-drop lock", { ...idle, softDrop: true }],
+  ])("restarts the gravity interval for the next piece after a %s", (_name, input) => {
+    const game = createGame();
+    game.update(0.9, idle);
+    game.piece = { type: 2, shape: [[2, 2], [2, 2]], x: 0, y: ROWS - 2 };
+    game.update(0, input);
+    expect(game.piece.y).toBe(0);
+    game.update(0.2, idle);
+    expect(game.piece.y).toBe(0);
+    game.update(0.8, idle);
+    expect(game.piece.y).toBe(1);
+  });
+
   it("accumulates gravity until the interval and then moves exactly one row", () => {
     const game = createGame();
     game.update(0.5, idle);

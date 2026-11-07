@@ -109,6 +109,7 @@ export class TetrisGame {
       });
     });
     this.events.push("lock");
+    this.fallElapsedMs = 0;
 
     const remaining = this.board.filter((row) => row.some((cell) => cell === 0));
     const cleared = this.board.length - remaining.length;
