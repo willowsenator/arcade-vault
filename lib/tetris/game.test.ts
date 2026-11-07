@@ -26,6 +26,50 @@ function finishGame(game: TetrisGame) {
 }
 
 describe("Tetris game rules", () => {
+  it("selects the first and last pieces at the random boundaries", () => {
+    expect(new TetrisGame(() => 0).piece.type).toBe(1);
+    expect(new TetrisGame(() => 0.999999).piece.type).toBe(PIECES.length);
+  });
+
+  it("shifts surviving rows down after clearing two adjacent rows", () => {
+    const game = prepareClear(2);
+    game.board[17][0] = 3;
+    game.update(0, { ...idle, softDrop: true });
+    expect(game.board[18]).toEqual([0, 0, 0, 0, 1, 0, 0, 0, 0, 0]);
+    expect(game.board[19]).toEqual([3, 0, 0, 0, 1, 0, 0, 0, 0, 0]);
+    expect(game.board.slice(0, 18)).toEqual(emptyBoard().slice(0, 18));
+  });
+
+  it("clears non-adjacent rows while preserving the row between them", () => {
+    const game = createGame();
+    for (const y of [17, 19]) {
+      game.board[y].fill(7);
+      game.board[y][4] = 0;
+    }
+    game.board[18][0] = 5;
+    game.piece = { type: 1, shape: [[1], [1], [1], [1]], x: 4, y: 16 };
+    game.update(0, { ...idle, softDrop: true });
+    expect(game.board[19]).toEqual([5, 0, 0, 0, 1, 0, 0, 0, 0, 0]);
+    expect(game.board[18]).toEqual([0, 0, 0, 0, 1, 0, 0, 0, 0, 0]);
+    expect(game.score).toBe(300);
+    expect(game.events).toEqual(["lock", "lines"]);
+  });
+
+  it("ends on spawn collision after a hard drop and clears events on later updates", () => {
+    const game = createGame();
+    game.next = { type: 2, shape: [[2, 2], [2, 2]], x: 4, y: 0 };
+    game.board[0][4] = 7;
+    game.piece = { type: 2, shape: [[2, 2], [2, 2]], x: 0, y: ROWS - 2 };
+    game.update(0, { ...idle, hardDrop: true });
+    expect(game.events).toEqual(["lock", "gameOver"]);
+    expect(game.state).toBe("gameover");
+    const board = structuredClone(game.board);
+    game.update(1, { ...idle, hardDrop: true });
+    expect(game.events).toEqual([]);
+    expect(game.board).toEqual(board);
+    expect(game.state).toBe("gameover");
+  });
+
   it("keeps one life before and after game over and floors the fall interval", () => {
     const game = createGame();
     expect(START_LIVES).toBe(1);
