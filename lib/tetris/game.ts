@@ -69,7 +69,7 @@ export class TetrisGame {
   }
 
   private createPiece(): ActivePiece {
-    const type = Math.floor(this.random() * 7) + 1;
+    const type = Math.floor(this.random() * PIECES.length) + 1;
     const shape = PIECES[type - 1].map((row) => [...row]);
     return { type, shape, x: Math.floor(COLS / 2) - Math.floor(shape[0].length / 2), y: 0 };
   }

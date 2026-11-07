@@ -7,6 +7,8 @@ import { sound, type Cue } from "@/lib/sound";
 import { TETRIS_CUES } from "@/lib/sound/cues";
 
 const CUES = TETRIS_CUES satisfies Record<TetrisEvent, Cue>;
+const noInput = (): Input => ({ left: false, right: false, rotate: false, softDrop: false, hardDrop: false });
+const REPEATABLE = new Set<keyof Input>(["left", "right", "softDrop"]);
 
 const GAME_KEYS = new Map<string, keyof Input>([
   ["ArrowLeft", "left"],
@@ -48,7 +50,7 @@ export default function TetrisCanvas({
     drawGame(ctx, game);
     if (!running) return;
 
-    const pending: Input = { left: false, right: false, rotate: false, softDrop: false, hardDrop: false };
+    const pending = noInput();
     let lastTime: number | null = null;
     let lastStats = "";
     let frameId = 0;
@@ -57,7 +59,7 @@ export default function TetrisCanvas({
       const action = GAME_KEYS.get(event.code);
       if (!action || isInteractive(event.target)) return;
       event.preventDefault();
-      if (event.repeat && action !== "left" && action !== "right" && action !== "softDrop") return;
+      if (event.repeat && !REPEATABLE.has(action)) return;
       pending[action] = true;
     };
     const onKeyUp = (event: KeyboardEvent) => {
@@ -77,11 +79,7 @@ export default function TetrisCanvas({
       const dt = lastTime === null ? 0 : clampDt((timestamp - lastTime) / 1000);
       lastTime = timestamp;
       game.update(dt, { ...pending });
-      pending.left = false;
-      pending.right = false;
-      pending.rotate = false;
-      pending.softDrop = false;
-      pending.hardDrop = false;
+      Object.assign(pending, noInput());
       for (const event of game.events) sound.play(CUES[event]);
       drawGame(ctx, game);
       publishStats();
