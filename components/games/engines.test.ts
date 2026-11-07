@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { GAMES } from "@/lib/data";
+import { SNAKE_MUSIC, TETRIS_MUSIC } from "@/lib/sound/cues";
+import { START_LIVES as SNAKE_START_LIVES } from "@/lib/snake/game";
 import AsteroidsCanvas from "./AsteroidsCanvas";
 import BloqueBusterCanvas from "./BloqueBusterCanvas";
 import SnakeCanvas from "./SnakeCanvas";
-import { START_LIVES as SNAKE_START_LIVES } from "@/lib/snake/game";
-import { SNAKE_MUSIC } from "@/lib/sound/cues";
+import TetrisCanvas from "./TetrisCanvas";
 import { ENGINES } from "./engines";
 
 describe("engine registry", () => {
@@ -24,6 +25,13 @@ describe("engine registry", () => {
       expect(engine.startLives).toBeGreaterThan(0);
       expect(engine.controlsHint.trim().length).toBeGreaterThan(0);
     }
+  });
+
+  it("registers the Tetris canvas, exact controls, music, and one starting life", () => {
+    expect(ENGINES.tetris.Canvas).toBe(TetrisCanvas);
+    expect(ENGINES.tetris.controlsHint).toBe("← → MOVER · ↑ / X ROTAR · ↓ BAJAR · ESPACIO CAER · P PAUSA");
+    expect(ENGINES.tetris.music).toBe(TETRIS_MUSIC);
+    expect(ENGINES.tetris.startLives).toBe(1);
   });
 
   it("maps engine ids to their canvases, three lives and exact Spanish controls", () => {

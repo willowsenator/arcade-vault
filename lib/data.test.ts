@@ -14,11 +14,12 @@ describe("data", () => {
     for (const g of GAMES) expect(CATS).toContain(g.cat);
   });
 
-  it("engine ids are rocas → asteroids, bloque-buster → bloque-buster and serpentina → snake", () => {
+  it("engine ids map rocas, bloque-buster, serpentina and caida to their engines", () => {
     expect(Object.fromEntries(GAMES.filter((g) => g.engine).map((g) => [g.id, g.engine]))).toEqual({
       rocas: "asteroids",
       "bloque-buster": "bloque-buster",
       serpentina: "snake",
+      caida: "tetris",
     });
   });
 
@@ -32,6 +33,12 @@ describe("data", () => {
 
   it("keeps the snake cover rule", () => {
     expect(readFileSync(path.resolve(import.meta.dirname, "../app/globals.css"), "utf8")).toMatch(/\.cover-snake\s*\{/);
+  });
+
+  it("keeps a cover rule in the stylesheet for the caida catalog cover", () => {
+    const caida = GAMES.find((g) => g.id === "caida")!;
+    const css = readFileSync(path.resolve(import.meta.dirname, "../app/globals.css"), "utf8");
+    expect(css).toMatch(new RegExp(`\\.${caida.cover}\\s*\\{`));
   });
 
   it("describes rocas by its real mechanics, not features the game lacks", () => {

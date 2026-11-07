@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { ASTEROIDS_CUES, ASTEROIDS_MUSIC, BLOQUE_BUSTER_CUES, BLOQUE_BUSTER_MUSIC, SNAKE_CUES, SNAKE_MUSIC } from "./cues";
+import {
+  ASTEROIDS_CUES, ASTEROIDS_MUSIC, BLOQUE_BUSTER_CUES, BLOQUE_BUSTER_MUSIC, SNAKE_CUES, SNAKE_MUSIC, TETRIS_CUES, TETRIS_MUSIC,
+} from "./cues";
 
 describe("snake cues", () => {
   it("has exactly the snake event keys", () => {
@@ -56,5 +58,48 @@ describe("cue tables (Task 3)", () => {
   it("defines both music loops exactly", () => {
     expect(BLOQUE_BUSTER_MUSIC).toEqual({ notes: [220, 261.63, 246.94, 196], step: 0.35, noteDuration: 0.315, type: "triangle", gain: 0.08 });
     expect(ASTEROIDS_MUSIC).toEqual({ notes: [110, 130.81, 146.83, 123.47], step: 0.4, noteDuration: 0.36, type: "triangle", gain: 0.08 });
+  });
+});
+
+describe("falling-piece cue tables", () => {
+  it("defines the rotate and lock tones exactly", () => {
+    expect(TETRIS_CUES.rotate).toEqual([{ freq: 520, type: "square", duration: 0.03, gain: 0.08 }]);
+    expect(TETRIS_CUES.lock).toEqual([{ freq: 120, type: "square", duration: 0.05, gain: 0.1 }]);
+  });
+
+  it("plays two square tones in sequence for cleared lines", () => {
+    expect(TETRIS_CUES.lines).toEqual([
+      { freq: 660, type: "square", duration: 0.06, gain: 0.12, delay: 0 },
+      { freq: 880, type: "square", duration: 0.06, gain: 0.12, delay: 0.06 },
+    ]);
+  });
+
+  it("plays four ascending square tones for a tetris", () => {
+    expect(TETRIS_CUES.tetris).toEqual([523.25, 659.25, 783.99, 1046.5].map((freq, index) => ({
+      freq, type: "square", duration: 0.08, gain: 0.12, delay: index * 0.08,
+    })));
+  });
+
+  it("reuses the shared rising level-up chord", () => {
+    expect(TETRIS_CUES.levelUp).toEqual(ASTEROIDS_CUES.levelUp);
+    expect(TETRIS_CUES.levelUp).toEqual(BLOQUE_BUSTER_CUES.levelUp);
+    expect(TETRIS_CUES.levelUp).toBe(ASTEROIDS_CUES.levelUp);
+    expect(TETRIS_CUES.levelUp).toBe(BLOQUE_BUSTER_CUES.levelUp);
+  });
+
+  it("plays the game-over chord with exact absolute delays", () => {
+    expect(TETRIS_CUES.gameOver).toEqual([
+      { freq: 392, type: "sine", duration: 0.18, gain: 0.15, delay: 0 },
+      { freq: 329.63, type: "sine", duration: 0.18, gain: 0.15, delay: 0.18 },
+      { freq: 261.63, type: "sine", duration: 0.18, gain: 0.15, delay: 0.36 },
+    ]);
+  });
+
+  it("exposes exactly the six emitted event names", () => {
+    expect(Object.keys(TETRIS_CUES).sort()).toEqual(["gameOver", "levelUp", "lines", "lock", "rotate", "tetris"]);
+  });
+
+  it("defines the falling-piece music loop exactly", () => {
+    expect(TETRIS_MUSIC).toEqual({ notes: [329.63, 246.94, 261.63, 293.66], step: 0.3, noteDuration: 0.27, type: "triangle", gain: 0.08 });
   });
 });

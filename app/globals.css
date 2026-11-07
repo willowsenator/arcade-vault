@@ -608,6 +608,10 @@ a { color: inherit; text-decoration: none; }
   border-radius: 28px;
   background: #050507;
   padding: 24px;
+  /* Keeps the 4:3 screen inside the viewport: 340px is the page chrome around the
+     screen (nav, HUD, CRT padding and footer, controls hint); 48px is the CRT padding. */
+  max-width: max(20rem, calc((100dvh - 340px) * 4 / 3 + 48px));
+  margin-inline: auto;
   box-shadow:
     0 0 0 6px #1b1b22,
     0 0 0 7px #2a2a35,

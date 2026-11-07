@@ -4,7 +4,7 @@ import PlayerScreen from "./PlayerScreen";
 import { AuthProvider } from "@/components/AuthProvider";
 import { GAMES } from "@/lib/data";
 import { sound, setSoundEnabled } from "@/lib/sound";
-import { ASTEROIDS_MUSIC, BLOQUE_BUSTER_MUSIC, SNAKE_MUSIC } from "@/lib/sound/cues";
+import { ASTEROIDS_MUSIC, BLOQUE_BUSTER_MUSIC, SNAKE_MUSIC, TETRIS_MUSIC } from "@/lib/sound/cues";
 import type { EngineCanvasProps } from "@/components/games/engines";
 
 const { unlockCleanup } = vi.hoisted(() => ({ unlockCleanup: vi.fn() }));
@@ -41,6 +41,9 @@ vi.mock("@/components/games/AsteroidsCanvas", () => ({
       <button onClick={props.onGameOver}>emit-over</button>
     </div>
   ),
+}));
+vi.mock("@/components/games/TetrisCanvas", () => ({
+  default: (props: EngineCanvasProps) => <div data-testid="tetris-canvas" data-running={String(props.running)} />,
 }));
 vi.mock("@/components/games/BloqueBusterCanvas", () => ({
   default: (props: EngineCanvasProps) => (
@@ -131,6 +134,7 @@ describe("PlayerScreen sound lifecycle", () => {
     ["bloque-buster", BLOQUE_BUSTER_MUSIC],
     ["rocas", ASTEROIDS_MUSIC],
     ["serpentina", SNAKE_MUSIC],
+    ["caida", TETRIS_MUSIC],
   ] as const)("starts the registry music and arms gesture unlock for %s", (id, music) => {
     renderPlayer(id);
     expect(sound.startMusic).toHaveBeenCalledExactlyOnceWith(music);
@@ -214,8 +218,13 @@ describe("PlayerScreen sound lifecycle", () => {
     expect(button).toHaveTextContent("SONIDO: SÍ");
   });
 
-  it("shows no switch and starts no music for a game without an engine", () => {
+  it("renders the sound switch for caida", () => {
     renderPlayer("caida");
+    expect(screen.getByRole("button", { name: "SONIDO" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("shows no switch and starts no music for a game without an engine", () => {
+    renderPlayer("gloton");
     expect(screen.queryByRole("button", { name: "SONIDO" })).toBeNull();
     expect(sound.startMusic).not.toHaveBeenCalled();
   });
