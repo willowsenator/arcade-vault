@@ -35,6 +35,12 @@ describe("data", () => {
     expect(readFileSync(path.resolve(import.meta.dirname, "../app/globals.css"), "utf8")).toMatch(/\.cover-snake\s*\{/);
   });
 
+  it("keeps a cover rule in the stylesheet for the caida catalog cover", () => {
+    const caida = GAMES.find((g) => g.id === "caida")!;
+    const css = readFileSync(path.resolve(import.meta.dirname, "../app/globals.css"), "utf8");
+    expect(css).toMatch(new RegExp(`\\.${caida.cover}\\s*\\{`));
+  });
+
   it("describes rocas by its real mechanics, not features the game lacks", () => {
     const rocas = GAMES.find((g) => g.id === "rocas")!;
     expect(rocas.long).not.toMatch(/ovni/i);

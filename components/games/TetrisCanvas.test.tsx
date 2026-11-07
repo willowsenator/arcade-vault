@@ -85,6 +85,28 @@ describe("TetrisCanvas", () => {
     }
   });
 
+  it.each(["button", "a", "input", "select", "textarea"])(
+    "leaves Space and arrows to a focused %s: no action, no preventDefault",
+    (tag) => {
+      const game = createGame();
+      const update = vi.spyOn(game, "update");
+      render(<TetrisCanvas running createGame={() => game} {...props()} />);
+      const control = document.body.appendChild(document.createElement(tag));
+      if (tag === "a") control.setAttribute("href", "/");
+      for (const code of ["Space", "ArrowDown"]) {
+        const event = new KeyboardEvent("keydown", { code, bubbles: true, cancelable: true });
+        control.dispatchEvent(event);
+        expect(event.defaultPrevented).toBe(false);
+        const release = new KeyboardEvent("keyup", { code, bubbles: true, cancelable: true });
+        control.dispatchEvent(release);
+        expect(release.defaultPrevented).toBe(false);
+      }
+      step(0);
+      expect(update).toHaveBeenLastCalledWith(0, emptyInput);
+      control.remove();
+    },
+  );
+
   it.each(mappings)("maps %s to a one-shot %s action", (code, field) => {
     const game = createGame();
     const update = vi.spyOn(game, "update");
@@ -150,6 +172,31 @@ describe("TetrisCanvas", () => {
     for (const [index, event] of game.events.entries()) {
       expect(sound.play).toHaveBeenNthCalledWith(index + 1, TETRIS_CUES[event]);
     }
+  });
+
+  it("maps all six event kinds to their own cue", () => {
+    const game = createGame();
+    const all = ["rotate", "lock", "lines", "tetris", "levelUp", "gameOver"] as const;
+    vi.spyOn(game, "update").mockImplementation(() => { game.events = [...all]; });
+    render(<TetrisCanvas running createGame={() => game} {...props()} />);
+    step(0);
+    expect(sound.play).toHaveBeenCalledTimes(all.length);
+    for (const [index, event] of all.entries()) {
+      expect(sound.play).toHaveBeenNthCalledWith(index + 1, TETRIS_CUES[event]);
+    }
+  });
+
+  it("plays the game-over cue before reporting game over", () => {
+    const game = createGame();
+    vi.spyOn(game, "update").mockImplementation(() => {
+      game.events = ["gameOver"];
+      game.state = "gameover";
+    });
+    const p = props();
+    render(<TetrisCanvas running createGame={() => game} {...p} />);
+    step(0);
+    expect(sound.play).toHaveBeenCalledExactlyOnceWith(TETRIS_CUES.gameOver);
+    expect(vi.mocked(sound.play).mock.invocationCallOrder[0]).toBeLessThan(p.onGameOver.mock.invocationCallOrder[0]);
   });
 
   it("plays no sounds when an update has no events", () => {

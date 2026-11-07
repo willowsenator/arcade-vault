@@ -57,7 +57,7 @@ export class TetrisGame {
       return;
     }
     if (input.softDrop) {
-      if (!this.moveDown()) return;
+      if (this.moveDown() === "locked") return;
       this.score++;
     }
 
@@ -92,13 +92,14 @@ export class TetrisGame {
     }
   }
 
-  private moveDown(): boolean {
+  /** Drops the piece one row, or locks it where it rests when the row below is blocked. */
+  private moveDown(): "moved" | "locked" {
     if (collides(this.board, this.piece.shape, this.piece.x, this.piece.y + 1)) {
       this.lockPiece();
-      return false;
+      return "locked";
     }
     this.piece.y++;
-    return true;
+    return "moved";
   }
 
   private lockPiece(): void {

@@ -17,6 +17,10 @@ const GAME_KEYS = new Map<string, keyof Input>([
   ["Space", "hardDrop"],
 ]);
 
+// Space and the arrows belong to a focused control (PAUSA, SONIDO, a link, a field).
+const isInteractive = (target: EventTarget | null): boolean =>
+  target instanceof HTMLElement && target.matches("button, a[href], input, select, textarea");
+
 export default function TetrisCanvas({
   running,
   onStats,
@@ -51,13 +55,13 @@ export default function TetrisCanvas({
 
     const onKeyDown = (event: KeyboardEvent) => {
       const action = GAME_KEYS.get(event.code);
-      if (!action) return;
+      if (!action || isInteractive(event.target)) return;
       event.preventDefault();
       if (event.repeat && action !== "left" && action !== "right" && action !== "softDrop") return;
       pending[action] = true;
     };
     const onKeyUp = (event: KeyboardEvent) => {
-      if (!GAME_KEYS.has(event.code)) return;
+      if (!GAME_KEYS.has(event.code) || isInteractive(event.target)) return;
       event.preventDefault();
     };
 
