@@ -35,9 +35,18 @@ export const ASTEROIDS_CUES = {
   levelUp,
 } satisfies Record<string, Cue>;
 
+export const SNAKE_CUES = {
+  food: [{ freq: 880, type: "sine", duration: 0.06, gain: 0.12, sweepTo: 1320 }],
+  levelUp,
+  gameOver: [{ ...lifeLost[0], delay: 0 }, ...gameOver([0.25, 0.43, 0.61])],
+} satisfies Record<string, Cue>;
+
 export const BLOQUE_BUSTER_MUSIC: MusicLoop = {
   notes: [220, 261.63, 246.94, 196], step: 0.35, noteDuration: 0.315, type: "triangle", gain: 0.08,
 };
 export const ASTEROIDS_MUSIC: MusicLoop = {
   notes: [110, 130.81, 146.83, 123.47], step: 0.4, noteDuration: 0.36, type: "triangle", gain: 0.08,
+};
+export const SNAKE_MUSIC: MusicLoop = {
+  notes: [196, 246.94, 293.66, 246.94], step: 0.3, noteDuration: 0.27, type: "triangle", gain: 0.08,
 };

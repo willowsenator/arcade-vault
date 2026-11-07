@@ -1,5 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { ASTEROIDS_CUES, ASTEROIDS_MUSIC, BLOQUE_BUSTER_CUES, BLOQUE_BUSTER_MUSIC } from "./cues";
+import { ASTEROIDS_CUES, ASTEROIDS_MUSIC, BLOQUE_BUSTER_CUES, BLOQUE_BUSTER_MUSIC, SNAKE_CUES, SNAKE_MUSIC } from "./cues";
+
+describe("snake cues", () => {
+  it("has exactly the snake event keys", () => {
+    expect(Object.keys(SNAKE_CUES).sort()).toEqual(["food", "gameOver", "levelUp"]);
+  });
+
+  it("pins food, the shared level-up chord and the last-life sequence", () => {
+    expect(SNAKE_CUES.food).toEqual([{ freq: 880, type: "sine", duration: 0.06, gain: 0.12, sweepTo: 1320 }]);
+    expect(SNAKE_CUES.levelUp).toEqual(ASTEROIDS_CUES.levelUp);
+    expect(SNAKE_CUES.gameOver).toEqual(ASTEROIDS_CUES.lastLife);
+  });
+
+  it("defines the snake music loop exactly", () => {
+    expect(SNAKE_MUSIC).toEqual({ notes: [196, 246.94, 293.66, 246.94], step: 0.3, noteDuration: 0.27, type: "triangle", gain: 0.08 });
+  });
+});
 
 describe("cue tables (Task 3)", () => {
   it("copies the brick, life-lost sweep and rising chord exactly", () => {

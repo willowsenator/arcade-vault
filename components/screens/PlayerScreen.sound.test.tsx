@@ -4,7 +4,7 @@ import PlayerScreen from "./PlayerScreen";
 import { AuthProvider } from "@/components/AuthProvider";
 import { GAMES } from "@/lib/data";
 import { sound, setSoundEnabled } from "@/lib/sound";
-import { ASTEROIDS_MUSIC, BLOQUE_BUSTER_MUSIC } from "@/lib/sound/cues";
+import { ASTEROIDS_MUSIC, BLOQUE_BUSTER_MUSIC, SNAKE_MUSIC } from "@/lib/sound/cues";
 import type { EngineCanvasProps } from "@/components/games/engines";
 
 const { unlockCleanup } = vi.hoisted(() => ({ unlockCleanup: vi.fn() }));
@@ -130,6 +130,7 @@ describe("PlayerScreen sound lifecycle", () => {
   it.each([
     ["bloque-buster", BLOQUE_BUSTER_MUSIC],
     ["rocas", ASTEROIDS_MUSIC],
+    ["serpentina", SNAKE_MUSIC],
   ] as const)("starts the registry music and arms gesture unlock for %s", (id, music) => {
     renderPlayer(id);
     expect(sound.startMusic).toHaveBeenCalledExactlyOnceWith(music);
