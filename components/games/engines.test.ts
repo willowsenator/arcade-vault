@@ -20,20 +20,24 @@ describe("engine registry", () => {
     for (const game of playable) {
       const engine = ENGINES[game.engine!];
       expect(engine).toBeDefined();
-      expect(engine.startLives).toBe(game.engine === "snake" ? 1 : 3);
+      expect(Number.isInteger(engine.startLives)).toBe(true);
+      expect(engine.startLives).toBeGreaterThan(0);
       expect(engine.controlsHint.trim().length).toBeGreaterThan(0);
     }
   });
 
-  it("maps engine ids to their canvases and exact Spanish controls", () => {
+  it("maps engine ids to their canvases, three lives and exact Spanish controls", () => {
     expect(ENGINES.asteroids.Canvas).toBe(AsteroidsCanvas);
+    expect(ENGINES.asteroids.startLives).toBe(3);
     expect(ENGINES.asteroids.controlsHint).toBe("← → ROTAR · ↑ IMPULSO · ESPACIO DISPARAR · P PAUSA");
     expect(ENGINES["bloque-buster"].Canvas).toBe(BloqueBusterCanvas);
+    expect(ENGINES["bloque-buster"].startLives).toBe(3);
     expect(ENGINES["bloque-buster"].controlsHint).toBe("← → / A D MOVER · RATÓN MOVER · P PAUSA");
   });
 
   it("registers the snake engine with its canvas, single life, music and exact hint", () => {
     expect(ENGINES.snake.Canvas).toBe(SnakeCanvas);
+    expect(ENGINES.snake.startLives).toBe(1);
     expect(ENGINES.snake.startLives).toBe(SNAKE_START_LIVES);
     expect(ENGINES.snake.music).toBe(SNAKE_MUSIC);
     expect(ENGINES.snake.controlsHint).toBe("← ↑ ↓ → / WASD MOVER · P PAUSA");

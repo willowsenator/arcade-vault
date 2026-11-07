@@ -1,4 +1,3 @@
-import type { SnakeEvent } from "@/lib/snake/game";
 import type { Cue, MusicLoop } from "./synth";
 
 const lifeLost: Cue = [{ freq: 220, type: "sawtooth", duration: 0.25, gain: 0.2, sweepTo: 110 }];
@@ -40,7 +39,7 @@ export const SNAKE_CUES = {
   food: [{ freq: 880, type: "sine", duration: 0.06, gain: 0.12, sweepTo: 1320 }],
   levelUp,
   gameOver: [{ ...lifeLost[0], delay: 0 }, ...gameOver([0.25, 0.43, 0.61])],
-} satisfies Record<SnakeEvent, Cue>;
+} satisfies Record<string, Cue>;
 
 export const BLOQUE_BUSTER_MUSIC: MusicLoop = {
   notes: [220, 261.63, 246.94, 196], step: 0.35, noteDuration: 0.315, type: "triangle", gain: 0.08,

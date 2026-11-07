@@ -33,6 +33,15 @@ function snapshot(game: SnakeGame): Record<string, unknown> {
   );
 }
 
+/** Every board cell in one boustrophedon path, row by row; the last row runs leftward. */
+function boardPath(): Cell[] {
+  const path: Cell[] = [];
+  for (let y = 0; y < ROWS; y++) {
+    for (let i = 0; i < COLS; i++) path.push({ x: y % 2 === 0 ? i : COLS - 1 - i, y });
+  }
+  return path;
+}
+
 const FAR_FOOD: Cell = { x: 0, y: 0 };
 
 describe("SnakeGame start", () => {
@@ -61,6 +70,16 @@ describe("SnakeGame eating", () => {
     expect(game.events).toEqual(["food"]);
   });
 
+  it("places new food on the only free cell left", () => {
+    const game = newGame();
+    const path = boardPath();
+    const [food, lastFree] = path.slice(-2);
+    place(game, path.slice(0, -2).reverse(), "left", food);
+    step(game);
+    expect(game.state).toBe("playing");
+    expect(game.food).toEqual(lastFree);
+  });
+
   it("scores 10 times the level at eating", () => {
     const game = newGame();
     game.level = 2;
@@ -82,10 +101,7 @@ describe("SnakeGame eating", () => {
 
   it("ends the run once when the last free cell is eaten, without placing food", () => {
     const game = newGame();
-    const path: Cell[] = [];
-    for (let y = 0; y < ROWS; y++) {
-      for (let i = 0; i < COLS; i++) path.push({ x: y % 2 === 0 ? i : COLS - 1 - i, y });
-    }
+    const path = boardPath();
     const food = path[path.length - 1];
     place(game, path.slice(0, -1).reverse(), "left", food);
     step(game);
@@ -130,6 +146,7 @@ describe("SnakeGame collisions", () => {
     step(game);
     expect(game.state).toBe("playing");
     expect(game.snake[0]).toEqual({ x: 6, y: 5 });
+    expect(game.events).toEqual([]);
   });
 
   it("is fatal to enter the tail cell when the snake grows on that step", () => {
@@ -198,6 +215,7 @@ describe("SnakeGame update", () => {
     expect(game.snake[0]).toEqual({ x: COLS / 2, y: ROWS / 2 });
     game.update(interval * 0.5);
     expect(game.snake[0]).toEqual({ x: COLS / 2 + 1, y: ROWS / 2 });
+    expect(game.events).toEqual([]);
   });
 
   it("advances as many steps as dt covers", () => {
