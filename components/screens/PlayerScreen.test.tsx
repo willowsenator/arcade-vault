@@ -13,7 +13,11 @@ const supabase = vi.hoisted(() => ({
 vi.mock("@/lib/score-queries", () => ({ insertScore: supabase.insertScore }));
 vi.mock("@/utils/supabase/client", () => ({ createClient: supabase.createClient }));
 
-const mockPlayerGame = GAMES.find((g) => !g.engine)!;
+vi.mock("@/components/games/AsteroidsCanvas", () => ({
+  default: () => <div data-testid="asteroids-canvas" />,
+}));
+
+const mockPlayerGame = GAMES.find((g) => g.id === "rocas")!;
 
 const openGameOver = () => {
   render(
@@ -39,25 +43,6 @@ describe("PlayerScreen", () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
-  });
-  it("increases the score on an interval while not paused", () => {
-    render(
-      <AuthProvider>
-        <PlayerScreen game={mockPlayerGame} />
-      </AuthProvider>,
-    );
-    act(() => vi.advanceTimersByTime(220));
-    expect(screen.getByTestId("score-value").textContent).not.toBe("0");
-  });
-  it("stops increasing the score while paused", () => {
-    render(
-      <AuthProvider>
-        <PlayerScreen game={mockPlayerGame} />
-      </AuthProvider>,
-    );
-    fireEvent.click(screen.getByText("PAUSA"));
-    act(() => vi.advanceTimersByTime(1000));
-    expect(screen.getByTestId("score-value").textContent).toBe("0");
   });
   it("shows the game-over modal when FIN is clicked", () => {
     openGameOver();

@@ -29,6 +29,21 @@ describe("game routes", () => {
     expect(generateStaticParams()).toEqual(GAMES.map(({ id }) => ({ id })));
   });
 
+  it("prerenders exactly the four games that have an engine", () => {
+    expect(generateStaticParams()).toEqual(
+      ["bloque-buster", "caida", "serpentina", "rocas"].map((id) => ({ id })),
+    );
+  });
+
+  it.each(["gloton", "invasores", "ranaria", "duelo-pixel"])(
+    "calls notFound for the removed game %s on its detail and player pages",
+    async (id) => {
+      await expect(GameDetailPage(params(id))).rejects.toThrow("NEXT_NOT_FOUND");
+      await expect(PlayerPage(params(id))).rejects.toThrow("NEXT_NOT_FOUND");
+      expect(mocks.notFound).toHaveBeenCalledTimes(2);
+    },
+  );
+
   it("calls notFound for an unknown detail game id", async () => {
     await expect(GameDetailPage(params("does-not-exist"))).rejects.toThrow("NEXT_NOT_FOUND");
     expect(mocks.notFound).toHaveBeenCalledOnce();

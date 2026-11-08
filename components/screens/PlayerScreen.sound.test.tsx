@@ -222,10 +222,4 @@ describe("PlayerScreen sound lifecycle", () => {
     renderPlayer("caida");
     expect(screen.getByRole("button", { name: "SONIDO" })).toHaveAttribute("aria-pressed", "true");
   });
-
-  it("shows no switch and starts no music for a game without an engine", () => {
-    renderPlayer("gloton");
-    expect(screen.queryByRole("button", { name: "SONIDO" })).toBeNull();
-    expect(sound.startMusic).not.toHaveBeenCalled();
-  });
 });

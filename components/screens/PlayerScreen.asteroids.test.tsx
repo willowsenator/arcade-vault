@@ -144,12 +144,4 @@ describe("PlayerScreen with the asteroids engine", () => {
     renderPlayer();
     expect(screen.getByText(/ROTAR.*IMPULSO.*DISPARAR/)).toBeInTheDocument();
   });
-
-  it("keeps the mock player for games without an engine", () => {
-    const { container } = renderPlayer(GAMES.find((g) => !g.engine)!);
-    expect(screen.queryByTestId("asteroids-canvas")).toBeNull();
-    expect(container.querySelector(".enemy")).not.toBeNull();
-    expect(screen.getByTestId("lives-value").textContent).toBe("♥ ♥ ♥");
-    expect(screen.queryByText(/ROTAR.*IMPULSO.*DISPARAR/)).toBeNull();
-  });
 });

@@ -14,11 +14,11 @@ const migration = readFileSync(
 const grants = migration.match(/grant [^;]+;/gi) ?? [];
 
 describe("scores migration", () => {
-  it("seeds exactly the catalog games", () => {
+  it("seeds every catalog game (removed games keep their rows)", () => {
     const block = migration.match(/insert into public\.games \(id\) values ([^;]+);/i)?.[1] ?? "";
     const seeded = [...block.matchAll(/\('([^']+)'\)/g)].map((match) => match[1]);
-    expect(new Set(seeded)).toEqual(new Set(GAMES.map((game) => game.id)));
-    expect(seeded).toHaveLength(GAMES.length);
+    expect(new Set(seeded).size).toBe(seeded.length);
+    for (const game of GAMES) expect(seeded).toContain(game.id);
   });
 
   it("enables row level security on both tables", () => {

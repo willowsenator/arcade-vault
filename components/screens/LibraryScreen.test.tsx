@@ -21,6 +21,13 @@ describe("LibraryScreen", () => {
     expect(screen.getByText("CAÍDA")).toBeInTheDocument();
     expect(screen.queryByText("SERPENTINA")).not.toBeInTheDocument();
   });
+  it("offers only categories that have a game", () => {
+    render(<LibraryScreen stats={{}} />);
+    expect(screen.queryByRole("button", { name: "VERSUS" })).toBeNull();
+    for (const name of ["TODOS", "ARCADE", "PUZZLE", "SHOOTER"]) {
+      expect(screen.getByRole("button", { name })).toBeInTheDocument();
+    }
+  });
   it("shows a no-results state when nothing matches", () => {
     render(<LibraryScreen stats={{}} />);
     fireEvent.change(
