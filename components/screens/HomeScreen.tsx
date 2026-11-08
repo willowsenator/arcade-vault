@@ -207,7 +207,7 @@ export default function HomeScreen({ stats, recent, topPlayers }: HomeScreenProp
   const previewGames = GAMES.slice(0, 6);
   const totalPlays = GAMES.reduce((sum, game) => sum + (stats[game.id]?.plays ?? 0), 0);
   const heroStats = [
-    { n: `${GAMES.length}+`, u: "JUEGOS", s: "Y CONTANDO" },
+    { n: String(GAMES.length), u: "JUEGOS", s: "LISTOS PARA JUGAR" },
     {
       n: formatTotalPlays(totalPlays),
       u: "PARTIDAS",

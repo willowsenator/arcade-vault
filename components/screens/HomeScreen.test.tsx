@@ -48,7 +48,9 @@ describe("HomeScreen", () => {
 
   it("shows a games stat derived from the real game count, not a hardcoded number", () => {
     render(<HomeScreen {...data} />);
-    expect(screen.getByText(`${GAMES.length}+`)).toBeInTheDocument();
+    expect(screen.getByText(String(GAMES.length))).toBeInTheDocument();
+    expect(screen.getByText("LISTOS PARA JUGAR")).toBeInTheDocument();
+    expect(screen.queryByText("Y CONTANDO")).toBeNull();
   });
 
   it("lists a recent-score row per previewed game that has scores, and none for an empty game", () => {
