@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactElement } from "react";
 import Home from "./page";
-import { GAMES, RECENT_TICKER_GAMES } from "@/lib/data";
+import { GAMES } from "@/lib/data";
 import { TOP_PLAYERS_SIZE } from "@/lib/score-queries";
 import { fakeClient } from "@/lib/score-queries.testing";
 
@@ -26,18 +26,22 @@ describe("home route", () => {
 
     expect(element.props.stats).toEqual({ [GAMES[0].id]: { best: 10, plays: 2 } });
     const recent = element.props.recent as Record<string, unknown[]>;
-    expect(Object.keys(recent)).toEqual(GAMES.slice(0, RECENT_TICKER_GAMES).map((game) => game.id));
+    expect(Object.keys(recent)).toEqual(GAMES.map((game) => game.id));
     expect(recent[GAMES[0].id]).toEqual([{ rank: 1, name: "ANA", score: 10, date: "09/05/2026" }]);
     const recentQueries = queries.filter((query) =>
       query.calls.some((call) => call.method === "eq" && call.args[0] === "game"),
     );
     expect(recentQueries.map((query) => query.calls.find((call) => call.method === "eq")?.args[1])).toEqual(
-      GAMES.slice(0, RECENT_TICKER_GAMES).map((game) => game.id),
+      GAMES.map((game) => game.id),
     );
     for (const query of recentQueries) {
       expect(query.calls.filter((call) => call.method === "limit").map((call) => call.args[0])).toEqual([1]);
     }
     expect(element.props.topPlayers).toHaveLength(1);
+    const topQuery = queries.find((query) =>
+      query.calls.some((call) => call.method === "select" && call.args[0] === "name,score,game"),
+    )!;
+    expect(topQuery.calls).toContainEqual({ method: "in", args: ["game", GAMES.map((game) => game.id)] });
     expect(
       queries.some((query) =>
         query.calls.some((call) => call.method === "limit" && call.args[0] === TOP_PLAYERS_SIZE),

@@ -4,18 +4,23 @@ import path from "node:path";
 import { GAMES, CATS } from "./data";
 
 describe("data", () => {
-  it("GAMES has 8 unique ids", () => {
-    expect(GAMES).toHaveLength(8);
-    expect(new Set(GAMES.map((g) => g.id)).size).toBe(8);
+  it("GAMES lists only the games that have an engine", () => {
+    expect(GAMES.map((g) => g.id)).toEqual(["bloque-buster", "caida", "serpentina", "rocas"]);
   });
 
-  it("CATS includes TODOS plus every game category", () => {
-    expect(CATS).toContain("TODOS");
-    for (const g of GAMES) expect(CATS).toContain(g.cat);
+  it("CATS is TODOS plus only the categories that have a game", () => {
+    expect(CATS).toEqual(["TODOS", "ARCADE", "PUZZLE", "SHOOTER"]);
+  });
+
+  it("ships no cover rule for a removed game", () => {
+    const css = readFileSync(path.resolve(import.meta.dirname, "../app/globals.css"), "utf8");
+    for (const cover of ["cover-glot", "cover-invaders", "cover-rana", "cover-duelo"]) {
+      expect(css).not.toContain(cover);
+    }
   });
 
   it("engine ids map rocas, bloque-buster, serpentina and caida to their engines", () => {
-    expect(Object.fromEntries(GAMES.filter((g) => g.engine).map((g) => [g.id, g.engine]))).toEqual({
+    expect(Object.fromEntries(GAMES.map((g) => [g.id, g.engine]))).toEqual({
       rocas: "asteroids",
       "bloque-buster": "bloque-buster",
       serpentina: "snake",

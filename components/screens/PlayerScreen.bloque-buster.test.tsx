@@ -107,10 +107,4 @@ describe("PlayerScreen with the bloque-buster engine", () => {
     fireEvent.keyDown(window, { code: "KeyP" });
     expect(screen.queryByText("EN PAUSA")).toBeNull();
   });
-
-  it("does not toggle pause for games without an engine", () => {
-    renderPlayer("gloton");
-    fireEvent.keyDown(window, { code: "KeyP" });
-    expect(screen.queryByText("EN PAUSA")).toBeNull();
-  });
 });

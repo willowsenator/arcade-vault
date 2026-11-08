@@ -12,16 +12,13 @@ import { sound, useSoundEnabled, setSoundEnabled } from "@/lib/sound";
 
 export default function PlayerScreen({ game }: { game: Game }) {
   const { user } = useAuth();
-  const engine = game.engine ? ENGINES[game.engine] : null;
+  const engine = ENGINES[game.engine];
   const enabled = useSoundEnabled();
-  const playable = engine !== null;
-  // The fallback is the mock player's display value.
-  const startLives = engine?.startLives ?? 3;
+  const startLives = engine.startLives;
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(startLives);
-  const [gameLevel, setGameLevel] = useState(1);
+  const [level, setLevel] = useState(1);
   const [runId, setRunId] = useState(0);
-  const level = playable ? gameLevel : Math.floor(score / 2500) + 1;
   const [paused, setPaused] = useState(false);
   const [hidden, setHidden] = useState(() => typeof document !== "undefined" && document.hidden);
   const [over, setOver] = useState(false);
@@ -49,7 +46,7 @@ export default function PlayerScreen({ game }: { game: Game }) {
   }, []);
 
   useEffect(() => {
-    if (engine && !paused && !over && !hidden) sound.startMusic(engine.music);
+    if (!paused && !over && !hidden) sound.startMusic(engine.music);
     else sound.stopMusic();
     return () => sound.stopMusic();
   }, [engine, paused, over, runId, hidden]);
@@ -57,11 +54,11 @@ export default function PlayerScreen({ game }: { game: Game }) {
   const handleStats = useCallback((stats: EngineStats) => {
     setScore(stats.score);
     setLives(stats.lives);
-    setGameLevel(stats.level);
+    setLevel(stats.level);
   }, []);
 
   useEffect(() => {
-    if (!playable || over) return;
+    if (over) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.code !== "KeyP") return;
       if (event.ctrlKey || event.metaKey || event.altKey) return;
@@ -75,22 +72,13 @@ export default function PlayerScreen({ game }: { game: Game }) {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [playable, over]);
-
-  useEffect(() => {
-    if (playable || over || paused) return;
-    const timer = setInterval(
-      () => setScore((value) => value + Math.floor(10 + Math.random() * 90)),
-      220,
-    );
-    return () => clearInterval(timer);
-  }, [playable, over, paused]);
+  }, [over]);
 
   const restart = useCallback(() => {
     sound.cancelPending();
     setScore(0);
     setLives(startLives);
-    setGameLevel(1);
+    setLevel(1);
     setRunId((id) => id + 1);
     setPaused(false);
     setOver(false);
@@ -154,11 +142,7 @@ export default function PlayerScreen({ game }: { game: Game }) {
           <div className="hud-stat lives">
             <div className="l">Vidas</div>
             <div className="v" data-testid="lives-value">
-              {playable
-                ? lives > 0
-                  ? Array.from({ length: lives }, () => "♥").join(" ")
-                  : "—"
-                : "♥ ♥ ♥"}
+              {lives > 0 ? Array.from({ length: lives }, () => "♥").join(" ") : "—"}
             </div>
           </div>
           <div className="hud-stat level">
@@ -182,35 +166,23 @@ export default function PlayerScreen({ game }: { game: Game }) {
           <Link href={`/games/${game.id}`} className="btn ghost">
             SALIR
           </Link>
-          {engine && (
-            <button
-              className="btn ghost"
-              aria-pressed={enabled}
-              onClick={() => setSoundEnabled(!enabled)}
-            >
-              SONIDO<span aria-hidden="true">{enabled ? ": SÍ" : ": NO"}</span>
-            </button>
-          )}
+          <button
+            className="btn ghost"
+            aria-pressed={enabled}
+            onClick={() => setSoundEnabled(!enabled)}
+          >
+            SONIDO<span aria-hidden="true">{enabled ? ": SÍ" : ": NO"}</span>
+          </button>
         </div>
       </div>
       <div className="crt">
         <div className="crt-screen">
-          {engine ? (
-            <engine.Canvas
-              key={runId}
-              running={!paused && !over}
-              onStats={handleStats}
-              onGameOver={() => setOver(true)}
-            />
-          ) : (
-            <div className="game-arena">
-              <div className="grid-floor" />
-              <div className="enemy e1" />
-              <div className="enemy e2" />
-              <div className="enemy e3" />
-              <div className="player-ship" />
-            </div>
-          )}
+          <engine.Canvas
+            key={runId}
+            running={!paused && !over}
+            onStats={handleStats}
+            onGameOver={() => setOver(true)}
+          />
           {paused && (
             <div
               className="crt-content"
@@ -242,9 +214,7 @@ export default function PlayerScreen({ game }: { game: Game }) {
           <span>CARGA · 1MB</span>
         </div>
       </div>
-      {engine && (
-        <p className="controls-hint">{engine.controlsHint}</p>
-      )}
+      <p className="controls-hint">{engine.controlsHint}</p>
       {over && (
         <div className="modal-bd">
           <div

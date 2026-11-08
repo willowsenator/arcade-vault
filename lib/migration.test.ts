@@ -1,5 +1,5 @@
-// These are text checks on the migration file; no test runs the SQL against Postgres.
-import { readFileSync } from "node:fs";
+// These are text checks on the migration files; no test runs the SQL against Postgres.
+import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { GAMES } from "./data";
@@ -14,11 +14,11 @@ const migration = readFileSync(
 const grants = migration.match(/grant [^;]+;/gi) ?? [];
 
 describe("scores migration", () => {
-  it("seeds exactly the catalog games", () => {
+  it("seeds every catalog game (removed games keep their rows)", () => {
     const block = migration.match(/insert into public\.games \(id\) values ([^;]+);/i)?.[1] ?? "";
     const seeded = [...block.matchAll(/\('([^']+)'\)/g)].map((match) => match[1]);
-    expect(new Set(seeded)).toEqual(new Set(GAMES.map((game) => game.id)));
-    expect(seeded).toHaveLength(GAMES.length);
+    expect(new Set(seeded).size).toBe(seeded.length);
+    for (const game of GAMES) expect(seeded).toContain(game.id);
   });
 
   it("enables row level security on both tables", () => {
@@ -66,5 +66,40 @@ describe("scores migration", () => {
   it("references games from scores and makes game_stats security invoker", () => {
     expect(migration).toContain("game text not null references public.games (id)");
     expect(migration).toContain("create view public.game_stats with (security_invoker = true)");
+  });
+});
+
+describe("removed games migration", () => {
+  const dir = path.resolve(import.meta.dirname, "../supabase/migrations");
+  const removed = "20261108120000_remove_unimplemented_games.sql";
+  const raw = readFileSync(path.join(dir, removed), "utf8");
+  const sql = raw.replace(/--.*$/gm, "").replace(/\s+/g, " ");
+  const ids = "'gloton', 'invasores', 'ranaria', 'duelo-pixel'";
+
+  it("is a separate, later migration than the scores one", () => {
+    expect(readdirSync(dir)).toContain(removed);
+    expect(removed > "20260924120000_scores.sql").toBe(true);
+  });
+
+  it("warns in its header that the deletion cannot be undone", () => {
+    expect(raw.split("\n").slice(0, 4).join("\n")).toMatch(/irreversible/i);
+  });
+
+  it("deletes the scores of the removed games before the games themselves", () => {
+    const scores = sql.search(new RegExp(`delete from public\\.scores where game in \\(${ids}\\);`, "i"));
+    const games = sql.search(new RegExp(`delete from public\\.games where id in \\(${ids}\\);`, "i"));
+    expect(scores).toBeGreaterThanOrEqual(0);
+    expect(games).toBeGreaterThan(scores);
+  });
+
+  it("changes nothing else", () => {
+    expect(sql).not.toMatch(/\b(drop|truncate|alter|update|insert)\b/i);
+    expect(sql.match(/delete from/gi)).toHaveLength(2);
+  });
+
+  it("leaves the original migration seeding those ids untouched", () => {
+    for (const id of ["gloton", "invasores", "ranaria", "duelo-pixel"]) {
+      expect(migration).toContain(`('${id}')`);
+    }
   });
 });

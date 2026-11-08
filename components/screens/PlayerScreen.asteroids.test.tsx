@@ -58,9 +58,8 @@ describe("PlayerScreen with the asteroids engine", () => {
   afterEach(() => vi.useRealTimers());
 
   it("renders the canvas instead of the mock arena and never ticks a fake score", () => {
-    const { container } = renderPlayer();
+    renderPlayer();
     expect(screen.getByTestId("asteroids-canvas")).toBeInTheDocument();
-    expect(container.querySelector(".enemy")).toBeNull();
     act(() => vi.advanceTimersByTime(1000));
     expect(screen.getByTestId("score-value").textContent).toBe("0");
   });
@@ -143,13 +142,5 @@ describe("PlayerScreen with the asteroids engine", () => {
   it("shows the controls hint in Spanish", () => {
     renderPlayer();
     expect(screen.getByText(/ROTAR.*IMPULSO.*DISPARAR/)).toBeInTheDocument();
-  });
-
-  it("keeps the mock player for games without an engine", () => {
-    const { container } = renderPlayer(GAMES.find((g) => !g.engine)!);
-    expect(screen.queryByTestId("asteroids-canvas")).toBeNull();
-    expect(container.querySelector(".enemy")).not.toBeNull();
-    expect(screen.getByTestId("lives-value").textContent).toBe("♥ ♥ ♥");
-    expect(screen.queryByText(/ROTAR.*IMPULSO.*DISPARAR/)).toBeNull();
   });
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { GAMES, RECENT_TICKER_GAMES, type ScoreRow } from "@/lib/data";
+import { GAMES, type ScoreRow } from "@/lib/data";
 import { NO_SCORES_YET } from "@/lib/messages";
 import type { GameStats, TopPlayer } from "@/lib/score-queries";
 import { useReveal } from "@/lib/useReveal";
@@ -24,7 +24,7 @@ const FEATURES = [
   {
     kind: "GAMEPAD",
     title: "JUEGOS CLÁSICOS",
-    desc: "Arkanoid, Tetris, Snake y muchos más. Los mejores arcades de todos los tiempos en un solo lugar.",
+    desc: "Arkanoid, Tetris, Snake y Asteroids. Los mejores arcades de todos los tiempos en un solo lugar.",
     color: "cyan",
   },
   {
@@ -204,10 +204,9 @@ function FloatingSilhouettes() {
 
 export default function HomeScreen({ stats, recent, topPlayers }: HomeScreenProps) {
   useReveal();
-  const previewGames = GAMES.slice(0, 6);
-  const totalPlays = Object.values(stats).reduce((sum, entry) => sum + entry.plays, 0);
+  const totalPlays = GAMES.reduce((sum, game) => sum + (stats[game.id]?.plays ?? 0), 0);
   const heroStats = [
-    { n: `${GAMES.length}+`, u: "JUEGOS", s: "Y CONTANDO" },
+    { n: String(GAMES.length), u: "JUEGOS", s: "LISTOS PARA JUGAR" },
     {
       n: formatTotalPlays(totalPlays),
       u: "PARTIDAS",
@@ -215,7 +214,7 @@ export default function HomeScreen({ stats, recent, topPlayers }: HomeScreenProp
     },
     { n: "GLOBAL", u: "RANKING", s: "COMPITE CON EL MUNDO" },
   ];
-  const recentScores = GAMES.slice(0, RECENT_TICKER_GAMES).flatMap((game) => {
+  const recentScores = GAMES.flatMap((game) => {
     const top = recent[game.id]?.[0];
     return top
       ? [{ player: top.name, title: game.title, score: top.score, color: game.color, cat: game.cat }]
@@ -283,7 +282,7 @@ export default function HomeScreen({ stats, recent, topPlayers }: HomeScreenProp
           <div className="section-rule" />
         </div>
         <div className="mini-rail">
-          {previewGames.map((game) => (
+          {GAMES.map((game) => (
             <Link key={game.id} href={`/games/${game.id}`} className="mini-card">
               <div className="mini-cover">
                 <div className={`cover-bg ${game.cover}`} />

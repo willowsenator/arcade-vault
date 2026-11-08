@@ -140,22 +140,25 @@ describe("fetchGameStats", () => {
 });
 
 describe("fetchTopPlayers", () => {
-  it("returns the highest scores across games, best first", async () => {
+  it("returns the highest scores across the given games, best first", async () => {
     const { client, queries } = fakeClient(() => ({
       data: [{ name: "ANA", score: 50, game: "rocas" }],
     }));
-    expect(await fetchTopPlayers(client, 5)).toEqual([{ name: "ANA", score: 50, game: "rocas" }]);
+    expect(await fetchTopPlayers(client, ["rocas", "caida"], 5)).toEqual([
+      { name: "ANA", score: 50, game: "rocas" },
+    ]);
     expect(queries[0].calls).toEqual([
       { method: "select", args: ["name,score,game"] },
+      { method: "in", args: ["game", ["rocas", "caida"]] },
       ...RANKING_ORDER,
       { method: "limit", args: [5] },
     ]);
   });
 
   it("returns an empty list when there are no scores and throws on error", async () => {
-    expect(await fetchTopPlayers(fakeClient(() => ({ data: [] })).client, 5)).toEqual([]);
+    expect(await fetchTopPlayers(fakeClient(() => ({ data: [] })).client, ["rocas"], 5)).toEqual([]);
     const failing = fakeClient(() => ({ error: { message: "boom" } })).client;
-    await expect(fetchTopPlayers(failing, 5)).rejects.toThrow("boom");
+    await expect(fetchTopPlayers(failing, ["rocas"], 5)).rejects.toThrow("boom");
   });
 });
 
