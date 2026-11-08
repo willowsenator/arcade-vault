@@ -87,6 +87,15 @@ describe("HomeScreen", () => {
     expect(screen.getByText("PARTIDAS")).toBeInTheDocument();
   });
 
+  it("ignores plays recorded for games no longer in the catalog", () => {
+    const stats = {
+      gloton: { best: 9, plays: 1_000_000 },
+      [GAMES[0].id]: { best: 5, plays: 3 },
+    };
+    render(<HomeScreen {...data} stats={stats} />);
+    expect(screen.getByText("3+")).toBeInTheDocument();
+  });
+
   it("switches the PARTIDAS stat to thousands exactly at 1000 plays", () => {
     const withPlays = (plays: number) => ({ ...data, stats: { [GAMES[0].id]: { best: 1, plays } } });
     const { unmount } = render(<HomeScreen {...withPlays(999)} />);

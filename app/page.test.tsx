@@ -38,6 +38,10 @@ describe("home route", () => {
       expect(query.calls.filter((call) => call.method === "limit").map((call) => call.args[0])).toEqual([1]);
     }
     expect(element.props.topPlayers).toHaveLength(1);
+    const topQuery = queries.find((query) =>
+      query.calls.some((call) => call.method === "select" && call.args[0] === "name,score,game"),
+    )!;
+    expect(topQuery.calls).toContainEqual({ method: "in", args: ["game", GAMES.map((game) => game.id)] });
     expect(
       queries.some((query) =>
         query.calls.some((call) => call.method === "limit" && call.args[0] === TOP_PLAYERS_SIZE),

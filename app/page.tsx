@@ -15,7 +15,7 @@ export default async function Home() {
     const [stats, recent, topPlayers] = await Promise.all([
       fetchGameStats(client),
       fetchTopScoresByGame(client, GAMES.slice(0, RECENT_TICKER_GAMES).map((game) => game.id), 1),
-      fetchTopPlayers(client, TOP_PLAYERS_SIZE),
+      fetchTopPlayers(client, GAMES.map((game) => game.id), TOP_PLAYERS_SIZE),
     ]);
     return { stats, recent, topPlayers };
   });

@@ -81,8 +81,14 @@ export async function fetchGameStats(client: ScoresClient): Promise<Record<strin
   );
 }
 
-export async function fetchTopPlayers(client: ScoresClient, limit: number): Promise<TopPlayer[]> {
-  const { data, error } = await byRanking(client.from("scores").select("name,score,game")).limit(limit);
+export async function fetchTopPlayers(
+  client: ScoresClient,
+  games: string[],
+  limit: number,
+): Promise<TopPlayer[]> {
+  const { data, error } = await byRanking(
+    client.from("scores").select("name,score,game").in("game", games),
+  ).limit(limit);
   throwOn(error);
   return (data ?? []) as TopPlayer[];
 }

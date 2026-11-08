@@ -8,7 +8,7 @@ export type Result = {
   count?: number | null;
 };
 
-const CHAINED = ["select", "insert", "eq", "gt", "lt", "order", "limit"];
+const CHAINED = ["select", "insert", "eq", "gt", "lt", "in", "order", "limit"];
 
 export function fakeClient(respond: (query: Query) => Result) {
   const queries: Query[] = [];

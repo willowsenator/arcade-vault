@@ -205,7 +205,7 @@ function FloatingSilhouettes() {
 export default function HomeScreen({ stats, recent, topPlayers }: HomeScreenProps) {
   useReveal();
   const previewGames = GAMES.slice(0, 6);
-  const totalPlays = Object.values(stats).reduce((sum, entry) => sum + entry.plays, 0);
+  const totalPlays = GAMES.reduce((sum, game) => sum + (stats[game.id]?.plays ?? 0), 0);
   const heroStats = [
     { n: `${GAMES.length}+`, u: "JUEGOS", s: "Y CONTANDO" },
     {
