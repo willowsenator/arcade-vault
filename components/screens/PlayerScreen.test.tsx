@@ -17,12 +17,12 @@ vi.mock("@/components/games/AsteroidsCanvas", () => ({
   default: () => <div data-testid="asteroids-canvas" />,
 }));
 
-const mockPlayerGame = GAMES.find((g) => g.id === "rocas")!;
+const game = GAMES.find((g) => g.id === "rocas")!;
 
 const openGameOver = () => {
   render(
     <AuthProvider>
-      <PlayerScreen game={mockPlayerGame} />
+      <PlayerScreen game={game} />
     </AuthProvider>,
   );
   fireEvent.click(screen.getByText("FIN"));
@@ -57,7 +57,7 @@ describe("PlayerScreen", () => {
     await save();
     expect(supabase.insertScore).toHaveBeenCalledWith(
       { __browser: true },
-      { game: mockPlayerGame.id, name: "INVITADO", score: 0 },
+      { game: game.id, name: "INVITADO", score: 0 },
     );
     expect(screen.getByText("▸ PUNTUACIÓN GUARDADA_")).toBeInTheDocument();
     expect(localStorage.getItem("av_scores")).toBeNull();
@@ -74,7 +74,7 @@ describe("PlayerScreen", () => {
     expect(screen.queryByText("▸ PUNTUACIÓN GUARDADA_")).toBeNull();
     expect(screen.getByText("GUARDAR PUNTUACIÓN")).not.toHaveAttribute("aria-disabled", "true");
     expect(screen.getByPlaceholderText("TUS INICIALES")).toHaveFocus();
-    expect(errorSpy).toHaveBeenCalledWith(expect.any(String), { game: mockPlayerGame.id }, failure);
+    expect(errorSpy).toHaveBeenCalledWith(expect.any(String), { game: game.id }, failure);
   });
   it("clears the error and confirms the score when a retry succeeds", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -174,7 +174,7 @@ describe("PlayerScreen", () => {
     localStorage.setItem("av_user", JSON.stringify({ name: "PX_KAI" }));
     const markup = renderToString(
       <AuthProvider>
-        <PlayerScreen game={mockPlayerGame} />
+        <PlayerScreen game={game} />
       </AuthProvider>,
     );
     const container = document.createElement("div");
@@ -183,7 +183,7 @@ describe("PlayerScreen", () => {
     const root = hydrateRoot(
       container,
       <AuthProvider>
-        <PlayerScreen game={mockPlayerGame} />
+        <PlayerScreen game={game} />
       </AuthProvider>,
     );
     await act(async () => {});

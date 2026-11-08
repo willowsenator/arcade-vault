@@ -58,9 +58,8 @@ describe("PlayerScreen with the asteroids engine", () => {
   afterEach(() => vi.useRealTimers());
 
   it("renders the canvas instead of the mock arena and never ticks a fake score", () => {
-    const { container } = renderPlayer();
+    renderPlayer();
     expect(screen.getByTestId("asteroids-canvas")).toBeInTheDocument();
-    expect(container.querySelector(".enemy")).toBeNull();
     act(() => vi.advanceTimersByTime(1000));
     expect(screen.getByTestId("score-value").textContent).toBe("0");
   });

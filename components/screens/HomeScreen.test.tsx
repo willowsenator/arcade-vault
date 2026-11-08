@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import HomeScreen from "./HomeScreen";
 import { GAMES } from "@/lib/data";
 
-const preview = GAMES.slice(0, 7);
+const preview = GAMES;
 const data = {
   stats: {
     [GAMES[0].id]: { best: 28450, plays: 1200 },
@@ -31,19 +31,15 @@ describe("HomeScreen", () => {
     expect(screen.getByText("✦ CREAR CUENTA")).toHaveAttribute("href", "/auth");
   });
 
-  it("previews at most six real games, each linking to its detail page", () => {
+  it("previews every catalog game, each linking to its detail page", () => {
     render(<HomeScreen {...data} />);
-    const first = GAMES.slice(0, 6);
-    first.forEach((game) => {
+    GAMES.forEach((game) => {
       expect(screen.getByText(game.title)).toBeInTheDocument();
     });
-    expect(screen.getByText(first[0].title).closest("a")).toHaveAttribute(
+    expect(screen.getByText(GAMES[0].title).closest("a")).toHaveAttribute(
       "href",
-      `/games/${first[0].id}`,
+      `/games/${GAMES[0].id}`,
     );
-    if (GAMES.length > 6) {
-      expect(screen.queryByText(GAMES[6].title)).not.toBeInTheDocument();
-    }
   });
 
   it("shows a games stat derived from the real game count, not a hardcoded number", () => {
@@ -51,6 +47,12 @@ describe("HomeScreen", () => {
     expect(screen.getByText(String(GAMES.length))).toBeInTheDocument();
     expect(screen.getByText("LISTOS PARA JUGAR")).toBeInTheDocument();
     expect(screen.queryByText("Y CONTANDO")).toBeNull();
+  });
+
+  it("names the four real games in the feature copy and does not promise more", () => {
+    render(<HomeScreen {...data} />);
+    expect(screen.getByText(/Arkanoid, Tetris, Snake y Asteroids\./)).toBeInTheDocument();
+    expect(screen.queryByText(/muchos más/)).toBeNull();
   });
 
   it("shows one preview card per catalog game", () => {

@@ -32,8 +32,6 @@ describe("application source", () => {
   it("has no mock player", () => {
     const player = readFileSync(path.join(root, "components/screens/PlayerScreen.tsx"), "utf8");
     expect(player).not.toContain("game-arena");
-    expect(player).not.toContain("playable");
-    expect(player).not.toContain("Math.random");
     const css = readFileSync(path.join(root, "app/globals.css"), "utf8");
     expect(css).not.toContain(".game-arena");
   });

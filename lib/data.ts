@@ -18,6 +18,4 @@ export const GAMES: Game[] = [
   { id: "rocas", title: "ROCAS", short: "Pulveriza asteroides en gravedad cero.", long: "Tu nave triangular flota en vacío absoluto. Dispara y rota para dividir rocas en fragmentos cada vez más pequeños. Algunas rocas sueltan potenciadores: el disparo triple abre tres frentes y el escudo pulveriza todo lo que toques.", cat: "SHOOTER", cover: "cover-rocas", color: "yellow", engine: "asteroids" },
 ];
 
-export const RECENT_TICKER_GAMES = 7;
-
 export const CATS = ["TODOS", ...new Set(GAMES.map((game) => game.cat))];
