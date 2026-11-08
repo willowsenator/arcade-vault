@@ -71,16 +71,18 @@ describe("scores migration", () => {
 
 describe("removed games migration", () => {
   const dir = path.resolve(import.meta.dirname, "../supabase/migrations");
-  const files = readdirSync(dir).filter((name) => name.endsWith(".sql")).sort();
-  const removed = files.length > 1 ? files[files.length - 1] : "";
-  const sql = removed
-    ? readFileSync(path.join(dir, removed), "utf8").replace(/--.*$/gm, "").replace(/\s+/g, " ")
-    : "";
+  const removed = "20261108120000_remove_unimplemented_games.sql";
+  const raw = readFileSync(path.join(dir, removed), "utf8");
+  const sql = raw.replace(/--.*$/gm, "").replace(/\s+/g, " ");
   const ids = "'gloton', 'invasores', 'ranaria', 'duelo-pixel'";
 
   it("is a separate, later migration than the scores one", () => {
-    expect(removed).not.toBe("");
+    expect(readdirSync(dir)).toContain(removed);
     expect(removed > "20260924120000_scores.sql").toBe(true);
+  });
+
+  it("warns in its header that the deletion cannot be undone", () => {
+    expect(raw.split("\n").slice(0, 4).join("\n")).toMatch(/irreversible/i);
   });
 
   it("deletes the scores of the removed games before the games themselves", () => {

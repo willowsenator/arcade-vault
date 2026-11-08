@@ -53,6 +53,14 @@ describe("HomeScreen", () => {
     expect(screen.queryByText("Y CONTANDO")).toBeNull();
   });
 
+  it("shows one preview card per catalog game", () => {
+    const { container } = render(<HomeScreen {...data} />);
+    const cards = container.querySelectorAll('a[href^="/games/"]');
+    expect([...cards].map((card) => card.getAttribute("href"))).toEqual(
+      GAMES.map((game) => `/games/${game.id}`),
+    );
+  });
+
   it("lists a recent-score row per previewed game that has scores, and none for an empty game", () => {
     render(<HomeScreen {...data} />);
     preview.forEach((game, index) => {
