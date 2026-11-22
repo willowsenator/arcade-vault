@@ -8,6 +8,10 @@ updates:
       # eslint-config-next bundles eslint-plugin-react, which does not support ESLint 10 yet
       - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]
+      # The @types/node major tracks the Node major; stay on the LTS line CI runs (26) and move
+      # to the next LTS by hand rather than following non-LTS or pre-LTS majors.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
