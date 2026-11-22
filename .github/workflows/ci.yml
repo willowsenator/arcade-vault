@@ -36,8 +36,9 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm test
-      - name: Type-check
-        run: npx tsc --noEmit
       # Compile only: the ISR pages prerender from live Supabase data, which CI does not have.
       - name: Build
         run: npx next build --experimental-build-mode=compile
+      # After the build, which generates the route types (LayoutProps, PageProps) in .next/types.
+      - name: Type-check
+        run: npx tsc --noEmit
